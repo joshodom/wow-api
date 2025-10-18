@@ -139,23 +139,41 @@ export class ActivityTrackingService {
     try {
       // Determine difficulty based on activity ID
       const difficulty = this.getRaidDifficulty(activityId);
+      console.log(`Checking ${difficulty} raid completion...`);
       
       // Check if character has completed any raid encounters this week
       const expansions = raidData.expansions || [];
       
+      // Look through all expansions for completed raids
       for (const expansion of expansions) {
-        const instances = expansion.instances || [];
-        for (const instance of instances) {
-          const modes = instance.modes || [];
-          for (const mode of modes) {
-            if (mode.difficulty?.name === difficulty) {
-              const encounters = mode.progress?.encounters || [];
-              return encounters.some((encounter: any) => encounter.completed === true);
+        if (expansion.instances && expansion.instances.length > 0) {
+          for (const instance of expansion.instances) {
+            if (instance.modes && instance.modes.length > 0) {
+              for (const mode of instance.modes) {
+                // Check if this mode matches our difficulty and is completed
+                if (this.matchesRaidDifficulty(mode.difficulty, difficulty) && 
+                    mode.status?.type === 'COMPLETE') {
+                  
+                  // Check if any encounters were completed this week
+                  if (mode.progress?.encounters) {
+                    const thisWeek = this.getThisWeekTimestamp();
+                    const hasRecentCompletion = mode.progress.encounters.some((encounter: any) => 
+                      encounter.last_kill_timestamp && encounter.last_kill_timestamp >= thisWeek
+                    );
+                    
+                    if (hasRecentCompletion) {
+                      console.log(`✅ Found ${difficulty} raid completion this week in ${instance.instance?.name || 'Unknown'}`);
+                      return true;
+                    }
+                  }
+                }
+              }
             }
           }
         }
       }
-
+      
+      console.log(`❌ No ${difficulty} raid completions found this week`);
       return false;
     } catch (error) {
       console.error('Error checking Raid completion:', error);
@@ -219,6 +237,30 @@ export class ActivityTrackingService {
         return 'Mythic';
       default:
         return 'Normal';
+    }
+  }
+
+  /**
+   * Check if a mode difficulty matches our target difficulty
+   */
+  private static matchesRaidDifficulty(modeDifficulty: any, targetDifficulty: string): boolean {
+    if (!modeDifficulty || !targetDifficulty) return false;
+    
+    const difficultyName = modeDifficulty.name?.en_US || '';
+    const difficultyType = modeDifficulty.type || '';
+    
+    switch (targetDifficulty) {
+      case 'Normal':
+        // Normal difficulty can be "Normal" or "Raid Finder" (LFR)
+        return difficultyName === 'Normal' || difficultyType === 'NORMAL' || difficultyType === 'LFR';
+      case 'Heroic':
+        // Heroic difficulty
+        return difficultyName === 'Heroic' || difficultyType === 'HEROIC';
+      case 'Mythic':
+        // Mythic difficulty
+        return difficultyName === 'Mythic' || difficultyType === 'MYTHIC';
+      default:
+        return false;
     }
   }
 
