@@ -85,13 +85,49 @@ export class ActivityTrackingService {
       const currentPeriod = mythicPlusData.current_period;
       if (!currentPeriod) return false;
 
-      // Check if there are any completed runs
+      // Check if there are any completed runs in the current period
       const completedRuns = currentPeriod.best_runs || [];
+      
+      // If no runs in current period, check if there are any recent runs in seasons
+      if (completedRuns.length === 0 && mythicPlusData.seasons && mythicPlusData.seasons.length > 0) {
+        const latestSeason = mythicPlusData.seasons[0];
+        if (latestSeason.best_runs && latestSeason.best_runs.length > 0) {
+          // Check if any runs were completed this week
+          const thisWeek = this.getThisWeekTimestamp();
+          const hasRecentRun = latestSeason.best_runs.some((run: any) => 
+            run.completed_timestamp && run.completed_timestamp >= thisWeek
+          );
+          
+          if (hasRecentRun) {
+            console.log(`✅ Found Mythic+ run completed this week`);
+            return true;
+          }
+        }
+      }
+      
       return completedRuns.length > 0;
     } catch (error) {
       console.error('Error checking Mythic+ completion:', error);
       return false;
     }
+  }
+
+  /**
+   * Get timestamp for the start of this week (Tuesday reset)
+   */
+  private static getThisWeekTimestamp(): number {
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    
+    // Calculate days since last Tuesday (reset day)
+    const daysSinceTuesday = (dayOfWeek + 5) % 7; // Tuesday = 2, so (2 + 5) % 7 = 0
+    
+    // Get the start of this week's reset (Tuesday at 10 AM UTC)
+    const thisWeekReset = new Date(now);
+    thisWeekReset.setUTCDate(now.getUTCDate() - daysSinceTuesday);
+    thisWeekReset.setUTCHours(10, 0, 0, 0); // 10 AM UTC reset time
+    
+    return thisWeekReset.getTime();
   }
 
   /**
