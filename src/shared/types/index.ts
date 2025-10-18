@@ -54,6 +54,7 @@ export interface WeeklyActivity {
   progress?: number;
   maxProgress?: number;
   resetDay: 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY' | 'MONDAY';
+  error?: string;
 }
 
 export interface CharacterProgress {

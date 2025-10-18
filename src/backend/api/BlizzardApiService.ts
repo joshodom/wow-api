@@ -223,7 +223,14 @@ export class BlizzardApiService {
         raids: raids.status === 'fulfilled' ? raids.value : null,
         pvp: pvp.status === 'fulfilled' ? pvp.value : null,
         quests: quests.status === 'fulfilled' ? quests.value : null,
-        achievements: achievements.status === 'fulfilled' ? achievements.value : null
+        achievements: achievements.status === 'fulfilled' ? achievements.value : null,
+        errors: {
+          mythicPlus: mythicPlus.status === 'rejected' ? mythicPlus.reason?.message || 'Failed to fetch' : null,
+          raids: raids.status === 'rejected' ? raids.reason?.message || 'Failed to fetch' : null,
+          pvp: pvp.status === 'rejected' ? pvp.reason?.message || 'Failed to fetch' : null,
+          quests: quests.status === 'rejected' ? quests.reason?.message || 'Failed to fetch' : null,
+          achievements: achievements.status === 'rejected' ? achievements.reason?.message || 'Failed to fetch' : null
+        }
       };
 
       // Log any failed requests

@@ -342,6 +342,7 @@ const DashboardPage: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {filteredAndSortedCharacters.map((character) => {
                             const classColor = getClassColor(character.className)
+                            const hasErrors = character.activities.some((activity: any) => activity.error)
 
                             const isExpanded = expandedCharacter === character.characterId
                             const isSelected = selectedCharacter?.characterId === character.characterId
@@ -349,8 +350,13 @@ const DashboardPage: React.FC = () => {
                             return (
                                 <div
                                     key={character.characterId}
-                                    className={`rounded-lg border-2 transition-all duration-300 hover:shadow-md cursor-pointer ${isSelected ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-gray-200 hover:border-gray-300'
-                                        }`}
+                                    className={`rounded-lg border-2 transition-all duration-300 hover:shadow-md cursor-pointer ${
+                                        hasErrors 
+                                            ? 'border-red-300 bg-red-50' 
+                                            : isSelected 
+                                                ? 'border-blue-500 bg-blue-50 shadow-md' 
+                                                : 'border-gray-200 hover:border-gray-300'
+                                    }`}
                                 >
                                     {/* Character Card Header */}
                                     <div
@@ -439,17 +445,24 @@ const DashboardPage: React.FC = () => {
                                                 {character.activities.map((activity: any, index: number) => (
                                                     <div key={index} className="flex items-center justify-between p-2 bg-white rounded border">
                                                         <div className="flex items-center space-x-2">
-                                                            {activity.completed ? (
+                                                            {activity.error ? (
+                                                                <XCircle className="h-4 w-4 text-red-500" />
+                                                            ) : activity.completed ? (
                                                                 <CheckCircle className="h-4 w-4 text-green-500" />
                                                             ) : (
-                                                                <XCircle className="h-4 w-4 text-red-500" />
+                                                                <XCircle className="h-4 w-4 text-gray-400" />
                                                             )}
                                                             <span className="text-sm font-medium text-gray-900">{activity.name}</span>
                                                         </div>
                                                         <div className="flex items-center space-x-2">
-                                                            <span className={`text-xs px-2 py-1 rounded-full ${activity.completed ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
-                                                                }`}>
-                                                                {activity.completed ? 'Completed' : 'Pending'}
+                                                            <span className={`text-xs px-2 py-1 rounded-full ${
+                                                                activity.error 
+                                                                    ? 'bg-red-100 text-red-800'
+                                                                    : activity.completed 
+                                                                        ? 'bg-green-100 text-green-800' 
+                                                                        : 'bg-gray-100 text-gray-600'
+                                                            }`}>
+                                                                {activity.error ? 'Error' : activity.completed ? 'Completed' : 'Incomplete'}
                                                             </span>
                                                         </div>
                                                     </div>

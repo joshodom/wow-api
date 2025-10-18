@@ -7,6 +7,13 @@ export interface ActivityData {
   pvp?: any;
   quests?: any;
   achievements?: any;
+  errors?: {
+    mythicPlus?: string | null;
+    raids?: string | null;
+    pvp?: string | null;
+    quests?: string | null;
+    achievements?: string | null;
+  };
 }
 
 export class ActivityTrackingService {
@@ -29,19 +36,35 @@ export class ActivityTrackingService {
         resetDay: activityTemplate.resetDay
       };
 
-      // Determine completion based on activity type
+      // Determine completion based on activity type and check for errors
       switch (activityTemplate.type) {
         case 'MYTHIC_PLUS':
-          activity.completed = this.checkMythicPlusCompletion(activityData.mythicPlus);
+          if (activityData.errors?.mythicPlus) {
+            activity.error = activityData.errors.mythicPlus;
+          } else {
+            activity.completed = this.checkMythicPlusCompletion(activityData.mythicPlus);
+          }
           break;
         case 'RAID':
-          activity.completed = this.checkRaidCompletion(activityData.raids, activityTemplate.id);
+          if (activityData.errors?.raids) {
+            activity.error = activityData.errors.raids;
+          } else {
+            activity.completed = this.checkRaidCompletion(activityData.raids, activityTemplate.id);
+          }
           break;
         case 'PVP':
-          activity.completed = this.checkPvpCompletion(activityData.pvp);
+          if (activityData.errors?.pvp) {
+            activity.error = activityData.errors.pvp;
+          } else {
+            activity.completed = this.checkPvpCompletion(activityData.pvp);
+          }
           break;
         case 'QUEST':
-          activity.completed = this.checkQuestCompletion(activityData.quests);
+          if (activityData.errors?.quests) {
+            activity.error = activityData.errors.quests;
+          } else {
+            activity.completed = this.checkQuestCompletion(activityData.quests);
+          }
           break;
       }
 
