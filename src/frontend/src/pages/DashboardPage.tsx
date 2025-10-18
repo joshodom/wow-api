@@ -111,8 +111,11 @@ const DashboardPage: React.FC = () => {
                                         {/* Character Header */}
                                         <div className="flex items-center space-x-3">
                                             <div
-                                                className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
-                                                style={{ backgroundColor: classColor }}
+                                                className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg"
+                                                style={{ 
+                                                    backgroundColor: classColor,
+                                                    color: getClassTextColor(character.className)
+                                                }}
                                             >
                                                 {character.characterName.charAt(0).toUpperCase()}
                                             </div>
