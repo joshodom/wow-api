@@ -7,6 +7,7 @@ import { BlizzardApiService } from './api/BlizzardApiService';
 import { DatabaseService } from './database/DatabaseService';
 import { JwtService } from './auth/JwtService';
 import { ActivityTrackingService } from './services/ActivityTrackingService';
+import { WeeklyResetService } from './services/WeeklyResetService';
 import { AppConfig, UserProfile } from '../shared/types';
 
 // Load environment variables
@@ -19,6 +20,7 @@ class WoWWeeklyTrackerServer {
   private apiService: BlizzardApiService;
   private databaseService: DatabaseService;
   private jwtService: JwtService;
+  private weeklyResetService: WeeklyResetService;
 
   constructor() {
     this.app = express();
@@ -32,6 +34,7 @@ class WoWWeeklyTrackerServer {
     this.apiService = new BlizzardApiService(this.config.blizzard.apiBaseUrl);
     this.databaseService = new DatabaseService(this.config.database.path);
     this.jwtService = new JwtService(this.config.jwt.secret);
+    this.weeklyResetService = WeeklyResetService.getInstance(this.databaseService, this.apiService);
 
     this.setupMiddleware();
     this.setupRoutes();
@@ -197,6 +200,28 @@ class WoWWeeklyTrackerServer {
       res.status(500).json({ error: 'Internal server error' });
     });
 
+    // Weekly reset endpoints
+    this.app.get('/api/reset/status', (req, res) => {
+      try {
+        const status = this.weeklyResetService.getResetStatus();
+        return res.json(status);
+      } catch (error) {
+        console.error('Error getting reset status:', error);
+        return res.status(500).json({ error: 'Failed to get reset status' });
+      }
+    });
+
+    this.app.post('/api/reset/manual', this.authenticateToken.bind(this), async (req, res) => {
+      try {
+        console.log('🔄 Manual weekly reset triggered by user');
+        await this.weeklyResetService.performWeeklyReset();
+        return res.json({ message: 'Weekly reset completed successfully' });
+      } catch (error) {
+        console.error('Error performing manual reset:', error);
+        return res.status(500).json({ error: 'Failed to perform weekly reset' });
+      }
+    });
+
     // 404 handler
     this.app.use((req, res) => {
       res.status(404).json({ error: 'Not found' });
@@ -231,6 +256,9 @@ class WoWWeeklyTrackerServer {
       
       // Start auto-refresh system
       this.startAutoRefresh();
+      
+      // Start weekly reset scheduler
+      this.weeklyResetService.startWeeklyResetScheduler();
     });
   }
 

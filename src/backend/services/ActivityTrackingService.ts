@@ -59,17 +59,17 @@ export class ActivityTrackingService {
             activity.completed = this.checkPvpCompletion(activityData.pvp);
           }
           break;
-            case 'QUEST':
-              if (activityData.errors?.quests) {
-                activity.error = activityData.errors.quests;
-              } else {
-                const questResult = this.checkQuestCompletion(activityData.quests);
-                activity.completed = questResult.completed;
-                if (questResult.questDetails) {
-                  activity.questDetails = questResult.questDetails;
-                }
-              }
-              break;
+        case 'QUEST':
+          if (activityData.errors?.quests) {
+            activity.error = activityData.errors.quests;
+          } else {
+            const questResult = this.checkQuestCompletion(activityData.quests);
+            activity.completed = questResult.completed;
+            if (questResult.questDetails) {
+              activity.questDetails = questResult.questDetails;
+            }
+          }
+          break;
       }
 
       activities.push(activity);

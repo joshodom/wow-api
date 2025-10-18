@@ -5,6 +5,7 @@ import { useCharacter } from '../contexts/CharacterContext'
 import { CheckCircle, XCircle, User, LogIn, Shield, Sword, Search, Filter, SortAsc, SortDesc, Zap, Target, Trophy, Star, Clock, TrendingUp } from 'lucide-react'
 import { notificationService } from '../services/NotificationService'
 import { getClassColor, getClassTextColor } from '../utils/classColors'
+import ResetStatusComponent from '../components/ResetStatusComponent'
 
 // Helper function to get activity icon
 const getActivityIcon = (activityType: string) => {
@@ -30,7 +31,7 @@ const getActivityIcon = (activityType: string) => {
 const getActivityColor = (activityType: string, completed: boolean, error?: string) => {
     if (error) return 'text-red-500'
     if (completed) return 'text-green-500'
-    
+
     switch (activityType) {
         case 'MYTHIC_PLUS':
             return 'text-purple-500'
@@ -229,6 +230,9 @@ const DashboardPage: React.FC = () => {
 
     return (
         <div className="space-y-6">
+            {/* Weekly Reset Status */}
+            <ResetStatusComponent />
+            
             {/* Character Selection */}
             <div className="card">
                 <div className="flex items-center justify-between mb-4">
@@ -376,30 +380,30 @@ const DashboardPage: React.FC = () => {
                         </div>
                     )}
                 </div>
-                    {isLoading ? (
-                        <div className="space-y-4">
-                            {/* Loading skeleton for character cards */}
-                            {[1, 2, 3].map((i) => (
-                                <div key={i} className="bg-white rounded-lg border-2 border-gray-200 p-4 animate-pulse">
-                                    <div className="flex items-center space-x-3">
-                                        <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
-                                        <div className="flex-1">
-                                            <div className="h-4 bg-gray-300 rounded w-1/3 mb-2"></div>
-                                            <div className="h-3 bg-gray-300 rounded w-1/4"></div>
-                                        </div>
-                                        <div className="h-6 bg-gray-300 rounded w-16"></div>
+                {isLoading ? (
+                    <div className="space-y-4">
+                        {/* Loading skeleton for character cards */}
+                        {[1, 2, 3].map((i) => (
+                            <div key={i} className="bg-white rounded-lg border-2 border-gray-200 p-4 animate-pulse">
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
+                                    <div className="flex-1">
+                                        <div className="h-4 bg-gray-300 rounded w-1/3 mb-2"></div>
+                                        <div className="h-3 bg-gray-300 rounded w-1/4"></div>
                                     </div>
-                                    <div className="mt-3">
-                                        <div className="h-2 bg-gray-300 rounded w-full"></div>
-                                    </div>
+                                    <div className="h-6 bg-gray-300 rounded w-16"></div>
                                 </div>
-                            ))}
-                            <div className="text-center py-4">
-                                <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent mx-auto" />
-                                <p className="mt-2 text-sm text-gray-600">Loading character data...</p>
+                                <div className="mt-3">
+                                    <div className="h-2 bg-gray-300 rounded w-full"></div>
+                                </div>
                             </div>
+                        ))}
+                        <div className="text-center py-4">
+                            <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent mx-auto" />
+                            <p className="mt-2 text-sm text-gray-600">Loading character data...</p>
                         </div>
-                    ) : filteredAndSortedCharacters.length === 0 ? (
+                    </div>
+                ) : filteredAndSortedCharacters.length === 0 ? (
                     <div className="text-center py-8">
                         <div className="text-gray-400 mb-2">
                             <User className="h-12 w-12 mx-auto" />
@@ -555,11 +559,10 @@ const DashboardPage: React.FC = () => {
                                             </div>
                                             <div className="space-y-3">
                                                 {character.activities.map((activity: any, index: number) => (
-                                                    <div key={index} className={`bg-white rounded-lg border-2 transition-all duration-300 hover:shadow-md ${
-                                                        activity.completed ? 'border-green-200 bg-green-50' : 
-                                                        activity.error ? 'border-red-200 bg-red-50' : 
-                                                        'border-gray-200 hover:border-gray-300'
-                                                    }`}>
+                                                    <div key={index} className={`bg-white rounded-lg border-2 transition-all duration-300 hover:shadow-md ${activity.completed ? 'border-green-200 bg-green-50' :
+                                                            activity.error ? 'border-red-200 bg-red-50' :
+                                                                'border-gray-200 hover:border-gray-300'
+                                                        }`}>
                                                         {/* Enhanced Main Activity Row */}
                                                         <div className="flex items-center justify-between p-3">
                                                             <div className="flex items-center space-x-3">
@@ -573,13 +576,12 @@ const DashboardPage: React.FC = () => {
                                                             </div>
                                                             <div className="flex items-center space-x-2">
                                                                 {/* Enhanced status indicator */}
-                                                                <div className={`flex items-center space-x-1 px-3 py-1 rounded-full font-medium text-xs ${
-                                                                    activity.error
+                                                                <div className={`flex items-center space-x-1 px-3 py-1 rounded-full font-medium text-xs ${activity.error
                                                                         ? 'bg-red-100 text-red-800 border border-red-200'
                                                                         : activity.completed
                                                                             ? 'bg-green-100 text-green-800 border border-green-200 animate-pulse'
                                                                             : 'bg-gray-100 text-gray-600 border border-gray-200'
-                                                                }`}>
+                                                                    }`}>
                                                                     {activity.error ? (
                                                                         <XCircle className="h-3 w-3" />
                                                                     ) : activity.completed ? (
@@ -620,7 +622,7 @@ const DashboardPage: React.FC = () => {
                                                                                 <div className="flex items-center space-x-1">
                                                                                     <Clock className="h-3 w-3 text-gray-400" />
                                                                                     <span className="text-gray-500 whitespace-nowrap font-medium">
-                                                                                        {quest.hoursAgo < 24 
+                                                                                        {quest.hoursAgo < 24
                                                                                             ? `${quest.hoursAgo}h ago`
                                                                                             : `${Math.floor(quest.hoursAgo / 24)}d ago`
                                                                                         }
