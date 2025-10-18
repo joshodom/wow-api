@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useCharacter } from '../contexts/CharacterContext'
 import { CheckCircle, XCircle, Clock, User, Bell, LogIn, Shield, Sword } from 'lucide-react'
 import { notificationService } from '../services/NotificationService'
-import { getClassColor } from '../utils/classColors'
+import { getClassColor, getClassTextColor } from '../utils/classColors'
 
 const DashboardPage: React.FC = () => {
     const navigate = useNavigate()
@@ -127,7 +127,7 @@ const DashboardPage: React.FC = () => {
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center space-x-2">
                                                     <Sword className="h-4 w-4 text-gray-500" />
-                                                    <span className="text-sm font-medium" style={{ color: classColor }}>
+                                                    <span className="text-sm font-medium" style={{ color: getClassTextColor(character.className) }}>
                                                         {character.className}
                                                     </span>
                                                 </div>
