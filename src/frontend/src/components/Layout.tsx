@@ -9,14 +9,17 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
     const { user, logout } = useAuth()
-    const { isLoading, refreshCharacterData, selectedCharacter } = useCharacter()
+    const { isLoading, refreshCharacterData, selectedCharacter, error } = useCharacter()
 
     const handleRefresh = async () => {
         if (selectedCharacter) {
             try {
                 await refreshCharacterData(selectedCharacter.characterId)
+                // Show success feedback (you could add a toast notification here)
+                console.log('Character data refreshed successfully')
             } catch (error) {
                 console.error('Failed to refresh data:', error)
+                // Error is already handled in the context
             }
         }
     }
@@ -41,9 +44,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                                         {user.battleTag}
                                     </span>
 
+                                    {error && (
+                                        <span className="text-sm text-red-600">
+                                            {error}
+                                        </span>
+                                    )}
+
                                     <button
                                         onClick={handleRefresh}
-                                        disabled={isLoading}
+                                        disabled={isLoading || !selectedCharacter}
                                         className="btn btn-secondary flex items-center space-x-2"
                                     >
                                         <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />

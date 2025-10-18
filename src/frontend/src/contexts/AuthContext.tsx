@@ -54,16 +54,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 window.history.replaceState({}, document.title, window.location.pathname);
 
                 // Store token and verify it
-                localStorage.setItem('wow_tracker_token', tokenFromUrl);
+                try {
+                    localStorage.setItem('wow_tracker_token', tokenFromUrl);
+                } catch (e) {
+                    console.warn('Failed to store token in localStorage:', e);
+                }
                 verifyToken(tokenFromUrl);
             } else {
                 // Check for stored token on app start
-                const storedToken = localStorage.getItem('wow_tracker_token')
-                if (storedToken) {
-                    setToken(storedToken)
-                    // Verify token and get user data
-                    verifyToken(storedToken)
-                } else {
+                try {
+                    const storedToken = localStorage.getItem('wow_tracker_token')
+                    if (storedToken) {
+                        setToken(storedToken)
+                        // Verify token and get user data
+                        verifyToken(storedToken)
+                    } else {
+                        setIsLoading(false)
+                    }
+                } catch (e) {
+                    console.warn('Failed to access localStorage:', e);
                     setIsLoading(false)
                 }
             }

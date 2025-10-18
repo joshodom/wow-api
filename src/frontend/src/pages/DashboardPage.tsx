@@ -13,11 +13,11 @@ const DashboardPage: React.FC = () => {
 
     // Check for notifications on component mount
     useEffect(() => {
-        if (selectedCharacter && selectedCharacter.weeklyActivities) {
-            selectedCharacter.weeklyActivities.forEach((activity: any) => {
+        if (selectedCharacter && selectedCharacter.activities) {
+            selectedCharacter.activities.forEach((activity: any) => {
                 if (activity.completed) {
                     notificationService.showActivityCompleted(
-                        selectedCharacter.name,
+                        selectedCharacter.characterName,
                         activity.name
                     );
                 }

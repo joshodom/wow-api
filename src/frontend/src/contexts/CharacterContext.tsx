@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react'
 import axios from 'axios'
 import { CharacterProgress, WeeklyActivity } from '../../../shared/types'
 import { useAuth } from './AuthContext'
@@ -34,13 +34,7 @@ export const CharacterProvider: React.FC<CharacterProviderProps> = ({ children }
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    useEffect(() => {
-        if (user && token) {
-            loadCharacterData()
-        }
-    }, [user, token])
-
-    const loadCharacterData = async () => {
+    const loadCharacterData = useCallback(async () => {
         if (!user || !token) return
 
         setIsLoading(true)
@@ -60,25 +54,25 @@ export const CharacterProvider: React.FC<CharacterProviderProps> = ({ children }
             // Convert Blizzard characters to CharacterProgress format
             const characterProgress: CharacterProgress[] = characters.map((char: any) => {
                 // Generate default weekly activities for this character
-                const defaultActivities: WeeklyActivity[] = Object.values(WEEKLY_ACTIVITIES).map(activity => ({
+                const defaultActivities: WeeklyActivity[] = WEEKLY_ACTIVITIES ? Object.values(WEEKLY_ACTIVITIES).map(activity => ({
                     id: `${char.id}_${activity.id}`,
-                    name: activity.name,
-                    type: activity.type,
-                    description: activity.description,
+                    name: activity.name || 'Unknown Activity',
+                    type: activity.type || 'QUEST',
+                    description: activity.description || 'No description available',
                     completed: false,
                     progress: 0,
                     maxProgress: 1,
-                    resetDay: activity.resetDay
-                }));
+                    resetDay: activity.resetDay || 'TUESDAY'
+                })) : [];
 
                 return {
                     characterId: char.id,
-                    characterName: char.name,
-                    realm: char.realm.slug,
-                    race: char.playable_race.name.en_US,
-                    className: char.playable_class.name.en_US,
-                    level: char.level,
-                    faction: char.faction.type,
+                    characterName: char.name || 'Unknown',
+                    realm: char.realm?.slug || 'Unknown',
+                    race: char.playable_race?.name?.en_US || 'Unknown',
+                    className: char.playable_class?.name?.en_US || 'Unknown',
+                    level: char.level || 0,
+                    faction: char.faction?.type || 'UNKNOWN',
                     activities: defaultActivities,
                     lastUpdated: new Date()
                 };
@@ -97,12 +91,19 @@ export const CharacterProvider: React.FC<CharacterProviderProps> = ({ children }
         } finally {
             setIsLoading(false)
         }
-    }
+    }, [user, token])
+
+    useEffect(() => {
+        if (user && token) {
+            loadCharacterData()
+        }
+    }, [user, token, loadCharacterData])
 
     const refreshCharacterData = async (characterId: number) => {
         if (!token) return
 
         try {
+            setIsLoading(true)
             const response = await axios.get(`/api/characters/${characterId}/progress`, {
                 headers: {
                     Authorization: `Bearer ${token}`
@@ -122,7 +123,10 @@ export const CharacterProvider: React.FC<CharacterProviderProps> = ({ children }
             }
         } catch (error) {
             console.error(`Failed to refresh character ${characterId}:`, error)
+            setError(`Failed to refresh character data`)
             throw error
+        } finally {
+            setIsLoading(false)
         }
     }
 
