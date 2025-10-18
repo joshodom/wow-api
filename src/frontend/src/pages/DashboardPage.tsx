@@ -2,11 +2,14 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useCharacter } from '../contexts/CharacterContext'
-import { CheckCircle, XCircle, User, LogIn, Shield, Sword, Search, Filter, SortAsc, SortDesc, Zap, Target, Trophy, Star, Clock, TrendingUp } from 'lucide-react'
+import { CheckCircle, XCircle, User, LogIn, Shield, Search, Filter, SortAsc, SortDesc, Zap, Target, Trophy, Star, Clock, TrendingUp, ChevronDown, ChevronRight, Sparkles, Activity } from 'lucide-react'
 import { notificationService } from '../services/NotificationService'
 import { getClassColor, getClassTextColor } from '../utils/classColors'
 import ResetStatusComponent from '../components/ResetStatusComponent'
 import AutoRefreshComponent from '../components/AutoRefreshComponent'
+import { LoadingSpinner, SkeletonCharacterCard, LoadingOverlay } from '../components/LoadingComponents'
+import { CharacterTooltip, InfoTooltip } from '../components/Tooltip'
+import { useNotificationHelpers } from '../components/NotificationSystem'
 
 // Helper function to get activity icon
 const getActivityIcon = (activityType: string) => {
@@ -229,10 +232,10 @@ const DashboardPage: React.FC = () => {
         <div className="space-y-6">
             {/* Weekly Reset Status */}
             <ResetStatusComponent />
-            
+
             {/* Auto-Refresh System */}
             <AutoRefreshComponent />
-            
+
             {/* Character Selection */}
             <div className="card">
                 <div className="flex items-center justify-between mb-4">
@@ -381,47 +384,36 @@ const DashboardPage: React.FC = () => {
                     )}
                 </div>
                 {isLoading ? (
-                    <div className="space-y-4">
-                        {/* Loading skeleton for character cards */}
-                        {[1, 2, 3].map((i) => (
-                            <div key={i} className="bg-white rounded-lg border-2 border-gray-200 p-4 animate-pulse">
-                                <div className="flex items-center space-x-3">
-                                    <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
-                                    <div className="flex-1">
-                                        <div className="h-4 bg-gray-300 rounded w-1/3 mb-2"></div>
-                                        <div className="h-3 bg-gray-300 rounded w-1/4"></div>
-                                    </div>
-                                    <div className="h-6 bg-gray-300 rounded w-16"></div>
-                                </div>
-                                <div className="mt-3">
-                                    <div className="h-2 bg-gray-300 rounded w-full"></div>
-                                </div>
-                            </div>
+                    <div className="grid-responsive">
+                        {[1, 2, 3, 4, 5, 6].map((i) => (
+                            <SkeletonCharacterCard key={i} />
                         ))}
-                        <div className="text-center py-4">
-                            <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent mx-auto" />
-                            <p className="mt-2 text-sm text-gray-600">Loading character data...</p>
+                        <div className="col-span-full text-center py-8">
+                            <LoadingSpinner size="lg" text="Loading your characters..." />
                         </div>
                     </div>
                 ) : filteredAndSortedCharacters.length === 0 ? (
-                    <div className="text-center py-8">
-                        <div className="text-gray-400 mb-2">
-                            <User className="h-12 w-12 mx-auto" />
+                    <div className="text-center py-12 animate-fade-in-up">
+                        <div className="text-gray-400 mb-4">
+                            <User className="h-16 w-16 mx-auto animate-float" />
                         </div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">No characters found</h3>
-                        <p className="text-gray-600 mb-4">
-                            Try adjusting your filters or search terms
+                        <h3 className="text-lg font-semibold text-gray-700 mb-2">No Characters Found</h3>
+                        <p className="text-gray-500 mb-4">
+                            {characters.length === 0 
+                                ? "You don't have any characters yet. Try logging in to sync your characters."
+                                : "No characters match your current filters. Try adjusting your search criteria."
+                            }
                         </p>
                         <button
                             onClick={resetFilters}
-                            className="btn btn-primary"
+                            className="btn-gradient-primary"
                         >
                             Reset Filters
                         </button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {filteredAndSortedCharacters.map((character) => {
+                    <div className="grid-responsive">
+                        {filteredAndSortedCharacters.map((character, index) => {
                             const classColor = getClassColor(character.className)
                             const hasErrors = character.activities.some((activity: any) => activity.error)
 
@@ -429,25 +421,27 @@ const DashboardPage: React.FC = () => {
                             const isSelected = selectedCharacter?.characterId === character.characterId
 
                             return (
-                                <div
-                                    key={character.characterId}
-                                    className={`rounded-lg border-2 transition-all duration-300 hover:shadow-md cursor-pointer ${hasErrors
-                                        ? 'border-red-300 bg-red-50'
-                                        : isSelected
-                                            ? 'border-blue-500 bg-blue-50 shadow-md'
-                                            : 'border-gray-200 hover:border-gray-300'
-                                        }`}
-                                >
+                                <CharacterTooltip key={character.characterId} character={character}>
+                                    <div
+                                        className={`character-card animate-fade-in-up ${hasErrors
+                                            ? 'border-red-300 bg-red-50 hover:bg-red-100'
+                                            : isSelected
+                                                ? 'border-blue-500 bg-blue-50 shadow-md hover:bg-blue-100'
+                                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                            }`}
+                                        style={{ animationDelay: `${index * 100}ms` }}
+                                    >
                                     {/* Character Card Header */}
                                     <div
                                         className="p-4"
                                         onClick={() => handleCharacterClick(character)}
                                     >
                                         <div className="space-y-3">
-                                            {/* Character Header */}
-                                            <div className="flex items-center space-x-3">
+                                        {/* Character Header */}
+                                        <div className="flex items-center space-x-4">
+                                            <div className="character-avatar relative">
                                                 <div
-                                                    className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg border-2 border-black"
+                                                    className="w-16 h-16 rounded-full flex items-center justify-center font-bold text-xl border-2 border-black shadow-lg"
                                                     style={{
                                                         backgroundColor: classColor,
                                                         color: getClassTextColor(character.className)
@@ -455,21 +449,40 @@ const DashboardPage: React.FC = () => {
                                                 >
                                                     {character.characterName.charAt(0).toUpperCase()}
                                                 </div>
-                                                <div className="text-left flex-1">
-                                                    <h3 className="font-semibold text-gray-900 text-lg">{character.characterName}</h3>
-                                                    <p className="text-sm text-gray-600 capitalize">{character.realm}</p>
-                                                </div>
-                                                <div className="flex items-center space-x-2">
-                                                    <span className="text-xs text-gray-500">
-                                                        {character.activities.filter((a: any) => a.completed).length} / {character.activities.length}
-                                                    </span>
-                                                    <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
-                                                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                                        </svg>
-                                                    </div>
+                                                {/* Level badge */}
+                                                <div className="absolute -bottom-1 -right-1 bg-gray-800 text-white text-xs font-bold px-2 py-1 rounded-full border-2 border-white">
+                                                    {character.level}
                                                 </div>
                                             </div>
+                                            <div className="text-left flex-1">
+                                                <h3 className="font-bold text-gray-900 text-xl group-hover:text-blue-600 transition-colors">
+                                                    {character.characterName}
+                                                </h3>
+                                                <p className="text-sm text-gray-600 capitalize font-medium">{character.realm}</p>
+                                                <div className="flex items-center space-x-2 mt-1">
+                                                    <span className="text-xs px-2 py-1 rounded-full font-medium" style={{ 
+                                                        backgroundColor: classColor + '20', 
+                                                        color: classColor 
+                                                    }}>
+                                                        {character.className}
+                                                    </span>
+                                                    <span className="text-xs px-2 py-1 rounded-full font-medium bg-gray-100 text-gray-700">
+                                                        {character.race}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col items-center space-y-2">
+                                                <div className="flex items-center space-x-2">
+                                                    <Sparkles className="h-4 w-4 text-yellow-500" />
+                                                    <span className="text-sm font-bold text-gray-700">
+                                                        {character.activities.filter((a: any) => a.completed).length}/{character.activities.length}
+                                                    </span>
+                                                </div>
+                                                <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                                                    <ChevronDown className="w-5 h-5 text-gray-400" />
+                                                </div>
+                                            </div>
+                                        </div>
 
                                             {/* Character Details */}
                                             <div className="space-y-2">
@@ -498,47 +511,49 @@ const DashboardPage: React.FC = () => {
                                             </div>
 
                                             {/* Enhanced Progress Bar */}
-                                            <div className="pt-2 border-t border-gray-100">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <span className="text-xs font-medium text-gray-600">Weekly Progress</span>
-                                                    <div className="flex items-center space-x-2">
-                                                        <span className="text-xs font-bold text-gray-800">
-                                                            {character.activities.filter((a: any) => a.completed).length}/{character.activities.length}
-                                                        </span>
-                                                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${getProgressStatus(getProgressPercentage(character)).color} text-white`}>
+                                        <div className="pt-3 border-t border-gray-100">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <div className="flex items-center space-x-2">
+                                                    <Activity className="h-4 w-4 text-blue-500" />
+                                                    <span className="text-sm font-semibold text-gray-700">Weekly Progress</span>
+                                                </div>
+                                                <div className="flex items-center space-x-2">
+                                                    <span className="text-sm font-bold text-gray-800">
+                                                        {character.activities.filter((a: any) => a.completed).length}/{character.activities.length}
+                                                    </span>
+                                                    <span className={`text-sm px-3 py-1 rounded-full font-bold ${getProgressStatus(getProgressPercentage(character)).color} text-white shadow-sm`}>
+                                                        {getProgressPercentage(character)}%
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="progress-bar h-4 relative overflow-hidden">
+                                                <div
+                                                    className={`progress-bar-fill ${getProgressStatus(getProgressPercentage(character)).color.replace('bg-', 'bg-gradient-to-r from-').replace('-500', '-400 to-').replace('-500', '-600')}`}
+                                                    style={{
+                                                        width: character.activities.length > 0
+                                                            ? `${(character.activities.filter((a: any) => a.completed).length / character.activities.length) * 100}%`
+                                                            : '0%'
+                                                    }}
+                                                >
+                                                    {/* Animated shimmer effect */}
+                                                    {getProgressPercentage(character) > 0 && (
+                                                        <div className="progress-bar-shimmer" />
+                                                    )}
+                                                </div>
+                                                {/* Progress percentage overlay */}
+                                                {getProgressPercentage(character) > 20 && (
+                                                    <div className="absolute inset-0 flex items-center justify-center">
+                                                        <span className="text-xs font-bold text-white drop-shadow-sm">
                                                             {getProgressPercentage(character)}%
                                                         </span>
                                                     </div>
-                                                </div>
-                                                <div className="relative w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                                                    <div
-                                                        className={`h-3 rounded-full transition-all duration-1000 ease-out relative ${getProgressStatus(getProgressPercentage(character)).color}`}
-                                                        style={{
-                                                            width: character.activities.length > 0
-                                                                ? `${(character.activities.filter((a: any) => a.completed).length / character.activities.length) * 100}%`
-                                                                : '0%'
-                                                        }}
-                                                    >
-                                                        {/* Animated shimmer effect for completed progress */}
-                                                        {getProgressPercentage(character) > 0 && (
-                                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-pulse" />
-                                                        )}
-                                                    </div>
-                                                    {/* Progress percentage text overlay */}
-                                                    {getProgressPercentage(character) > 15 && (
-                                                        <div className="absolute inset-0 flex items-center justify-center">
-                                                            <span className="text-xs font-bold text-white drop-shadow-sm">
-                                                                {getProgressPercentage(character)}%
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                {/* Progress status text */}
-                                                <div className="mt-1 text-center">
-                                                    <span className={`text-xs font-medium ${getProgressStatus(getProgressPercentage(character)).color.replace('bg-', 'text-')}`}>
-                                                        {getProgressStatus(getProgressPercentage(character)).text}
-                                                    </span>
-                                                </div>
+                                                )}
+                                            </div>
+                                            {/* Progress status */}
+                                            <div className="mt-2 text-center">
+                                                <span className={`text-sm font-semibold ${getProgressStatus(getProgressPercentage(character)).color.replace('bg-', 'text-')}`}>
+                                                    {getProgressStatus(getProgressPercentage(character)).text}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -678,7 +693,7 @@ const DashboardPage: React.FC = () => {
                                         </div>
                                     )}
                                 </div>
-                            )
+                            </CharacterTooltip>
                         })}
                     </div>
                 )}
