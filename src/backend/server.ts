@@ -8,6 +8,7 @@ import { DatabaseService } from './database/DatabaseService';
 import { JwtService } from './auth/JwtService';
 import { ActivityTrackingService } from './services/ActivityTrackingService';
 import { WeeklyResetService } from './services/WeeklyResetService';
+import { AutoRefreshService } from './services/AutoRefreshService';
 import { AppConfig, UserProfile } from '../shared/types';
 
 // Load environment variables
@@ -21,6 +22,7 @@ class WoWWeeklyTrackerServer {
   private databaseService: DatabaseService;
   private jwtService: JwtService;
   private weeklyResetService: WeeklyResetService;
+  private autoRefreshService: AutoRefreshService;
 
   constructor() {
     this.app = express();
@@ -35,6 +37,7 @@ class WoWWeeklyTrackerServer {
     this.databaseService = new DatabaseService(this.config.database.path);
     this.jwtService = new JwtService(this.config.jwt.secret);
     this.weeklyResetService = WeeklyResetService.getInstance(this.databaseService, this.apiService);
+    this.autoRefreshService = AutoRefreshService.getInstance(this.databaseService, this.apiService, this.weeklyResetService);
 
     this.setupMiddleware();
     this.setupRoutes();
@@ -222,6 +225,39 @@ class WoWWeeklyTrackerServer {
       }
     });
 
+    // Auto-refresh endpoints
+    this.app.get('/api/refresh/status', (req, res) => {
+      try {
+        const stats = this.autoRefreshService.getStats();
+        return res.json(stats);
+      } catch (error) {
+        console.error('Error getting refresh status:', error);
+        return res.status(500).json({ error: 'Failed to get refresh status' });
+      }
+    });
+
+    this.app.post('/api/refresh/manual', this.authenticateToken.bind(this), async (req, res) => {
+      try {
+        console.log('🔄 Manual refresh triggered by user');
+        const stats = await this.autoRefreshService.performManualRefresh();
+        return res.json({ message: 'Manual refresh completed successfully', stats });
+      } catch (error) {
+        console.error('Error performing manual refresh:', error);
+        return res.status(500).json({ error: 'Failed to perform manual refresh' });
+      }
+    });
+
+    this.app.post('/api/refresh/force', this.authenticateToken.bind(this), async (req, res) => {
+      try {
+        console.log('🔄 Force refresh triggered by user');
+        await this.autoRefreshService.forceRefresh();
+        return res.json({ message: 'Force refresh completed successfully' });
+      } catch (error) {
+        console.error('Error performing force refresh:', error);
+        return res.status(500).json({ error: 'Failed to perform force refresh' });
+      }
+    });
+
     // 404 handler
     this.app.use((req, res) => {
       res.status(404).json({ error: 'Not found' });
@@ -254,85 +290,12 @@ class WoWWeeklyTrackerServer {
       console.log(`📊 Environment: ${this.config.app.nodeEnv}`);
       console.log(`🔗 Frontend URL: ${this.config.app.frontendUrl}`);
       
-      // Start auto-refresh system
-      this.startAutoRefresh();
+      // Start enhanced auto-refresh system
+      this.autoRefreshService.start();
       
       // Start weekly reset scheduler
       this.weeklyResetService.startWeeklyResetScheduler();
     });
-  }
-
-  private startAutoRefresh(): void {
-    // Refresh character data every 30 minutes
-    setInterval(async () => {
-      try {
-        console.log('🔄 Starting automatic data refresh...');
-        const users = await this.databaseService.getAllUsers();
-        
-        for (const user of users) {
-          if (user.accessToken && user.characters) {
-            try {
-              // Refresh each character's data
-              for (const character of user.characters) {
-                try {
-                  console.log(`🔄 Refreshing data for ${character.name}@${character.realm.slug}`);
-                  
-                  // Fetch character profile and activity data
-                  const [profile, activityData] = await Promise.all([
-                    this.apiService.getCharacterProfile(
-                      character.realm.slug,
-                      character.name,
-                      user.accessToken.access_token
-                    ),
-                    this.apiService.getCharacterActivityData(
-                      character.realm.slug,
-                      character.name,
-                      user.accessToken.access_token
-                    )
-                  ]);
-                  
-                  if (profile && activityData) {
-                    // Analyze weekly activities
-                    const weeklyActivities = ActivityTrackingService.analyzeWeeklyActivities(
-                      character.id,
-                      activityData
-                    );
-                    
-                    console.log(`📊 Found ${weeklyActivities.filter(a => a.completed).length}/${weeklyActivities.length} completed activities for ${character.name}`);
-                    
-                    // Update character data with fresh profile information and activities
-                    await this.databaseService.updateCharacterProgress(character.id, {
-                      characterId: character.id,
-                      characterName: character.name,
-                      realm: character.realm.slug,
-                      race: character.playable_race.name.en_US,
-                      className: character.playable_class.name.en_US,
-                      level: character.level,
-                      faction: character.faction.type,
-                      activities: weeklyActivities,
-                      lastUpdated: new Date()
-                    });
-                    
-                    console.log(`✅ Updated ${character.name} with ${weeklyActivities.length} activities`);
-                  }
-                } catch (error) {
-                  console.error(`❌ Failed to refresh ${character.name}:`, error);
-                }
-              }
-              console.log(`✅ Refreshed data for user ${user.battleTag}`);
-            } catch (error) {
-              console.error(`❌ Failed to refresh data for user ${user.battleTag}:`, error);
-            }
-          }
-        }
-        
-        console.log('🔄 Automatic data refresh completed');
-      } catch (error) {
-        console.error('❌ Auto-refresh failed:', error);
-      }
-    }, 30 * 60 * 1000); // 30 minutes
-
-    console.log('🔄 Auto-refresh system started (30-minute intervals)');
   }
 }
 

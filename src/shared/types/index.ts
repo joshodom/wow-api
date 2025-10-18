@@ -47,7 +47,7 @@ export interface BlizzardCharacter {
 export interface WeeklyActivity {
   id: string;
   name: string;
-  type: 'MYTHIC_PLUS' | 'RAID' | 'QUEST' | 'PVP' | 'PROFESSION' | 'ACHIEVEMENT';
+  type: 'MYTHIC_PLUS' | 'RAID' | 'QUEST' | 'PROFESSION' | 'ACHIEVEMENT';
   description: string;
   completed: boolean;
   completedAt?: Date;
@@ -104,7 +104,6 @@ export enum ActivityType {
   MYTHIC_PLUS = 'MYTHIC_PLUS',
   RAID = 'RAID',
   QUEST = 'QUEST',
-  PVP = 'PVP',
   PROFESSION = 'PROFESSION',
   ACHIEVEMENT = 'ACHIEVEMENT'
 }

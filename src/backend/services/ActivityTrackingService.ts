@@ -4,13 +4,11 @@ import { WEEKLY_ACTIVITIES } from '../../shared/constants';
 export interface ActivityData {
   mythicPlus?: any;
   raids?: any;
-  pvp?: any;
   quests?: any;
   achievements?: any;
   errors?: {
     mythicPlus?: string | null;
     raids?: string | null;
-    pvp?: string | null;
     quests?: string | null;
     achievements?: string | null;
   };
@@ -50,13 +48,6 @@ export class ActivityTrackingService {
             activity.error = activityData.errors.raids;
           } else {
             activity.completed = this.checkRaidCompletion(activityData.raids, activityTemplate.id);
-          }
-          break;
-        case 'PVP':
-          if (activityData.errors?.pvp) {
-            activity.error = activityData.errors.pvp;
-          } else {
-            activity.completed = this.checkPvpCompletion(activityData.pvp);
           }
           break;
         case 'QUEST':
@@ -181,25 +172,6 @@ export class ActivityTrackingService {
       return false;
     } catch (error) {
       console.error('Error checking Raid completion:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Check if PvP weekly activity is completed
-   */
-  private static checkPvpCompletion(pvpData: any): boolean {
-    if (!pvpData) return false;
-
-    try {
-      // Check if character has gained honor or completed PvP objectives this week
-      const honorLevel = pvpData.honor_level || 0;
-      const honorProgress = pvpData.honor_progress || 0;
-      
-      // Simple check: if honor level > 0 or honor progress > 0, consider it completed
-      return honorLevel > 0 || honorProgress > 0;
-    } catch (error) {
-      console.error('Error checking PvP completion:', error);
       return false;
     }
   }

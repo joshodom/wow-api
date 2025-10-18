@@ -6,6 +6,7 @@ import { CheckCircle, XCircle, User, LogIn, Shield, Sword, Search, Filter, SortA
 import { notificationService } from '../services/NotificationService'
 import { getClassColor, getClassTextColor } from '../utils/classColors'
 import ResetStatusComponent from '../components/ResetStatusComponent'
+import AutoRefreshComponent from '../components/AutoRefreshComponent'
 
 // Helper function to get activity icon
 const getActivityIcon = (activityType: string) => {
@@ -16,8 +17,6 @@ const getActivityIcon = (activityType: string) => {
             return <Shield className="h-4 w-4" />
         case 'QUEST':
             return <Target className="h-4 w-4" />
-        case 'PVP':
-            return <Sword className="h-4 w-4" />
         case 'ACHIEVEMENT':
             return <Trophy className="h-4 w-4" />
         case 'PROFESSION':
@@ -39,8 +38,6 @@ const getActivityColor = (activityType: string, completed: boolean, error?: stri
             return 'text-orange-500'
         case 'QUEST':
             return 'text-blue-500'
-        case 'PVP':
-            return 'text-red-500'
         case 'ACHIEVEMENT':
             return 'text-yellow-500'
         case 'PROFESSION':
@@ -232,6 +229,9 @@ const DashboardPage: React.FC = () => {
         <div className="space-y-6">
             {/* Weekly Reset Status */}
             <ResetStatusComponent />
+            
+            {/* Auto-Refresh System */}
+            <AutoRefreshComponent />
             
             {/* Character Selection */}
             <div className="card">
@@ -560,8 +560,8 @@ const DashboardPage: React.FC = () => {
                                             <div className="space-y-3">
                                                 {character.activities.map((activity: any, index: number) => (
                                                     <div key={index} className={`bg-white rounded-lg border-2 transition-all duration-300 hover:shadow-md ${activity.completed ? 'border-green-200 bg-green-50' :
-                                                            activity.error ? 'border-red-200 bg-red-50' :
-                                                                'border-gray-200 hover:border-gray-300'
+                                                        activity.error ? 'border-red-200 bg-red-50' :
+                                                            'border-gray-200 hover:border-gray-300'
                                                         }`}>
                                                         {/* Enhanced Main Activity Row */}
                                                         <div className="flex items-center justify-between p-3">
@@ -577,10 +577,10 @@ const DashboardPage: React.FC = () => {
                                                             <div className="flex items-center space-x-2">
                                                                 {/* Enhanced status indicator */}
                                                                 <div className={`flex items-center space-x-1 px-3 py-1 rounded-full font-medium text-xs ${activity.error
-                                                                        ? 'bg-red-100 text-red-800 border border-red-200'
-                                                                        : activity.completed
-                                                                            ? 'bg-green-100 text-green-800 border border-green-200 animate-pulse'
-                                                                            : 'bg-gray-100 text-gray-600 border border-gray-200'
+                                                                    ? 'bg-red-100 text-red-800 border border-red-200'
+                                                                    : activity.completed
+                                                                        ? 'bg-green-100 text-green-800 border border-green-200 animate-pulse'
+                                                                        : 'bg-gray-100 text-gray-600 border border-gray-200'
                                                                     }`}>
                                                                     {activity.error ? (
                                                                         <XCircle className="h-3 w-3" />

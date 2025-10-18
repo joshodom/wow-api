@@ -168,27 +168,6 @@ export class BlizzardApiService {
   }
 
   /**
-   * Get character PvP summary
-   */
-  async getCharacterPvp(realm: string, characterName: string, accessToken: string): Promise<any> {
-    try {
-      const response = await axios.get(
-        `${this.apiBaseUrl}${BLIZZARD_API_ENDPOINTS.CHARACTER_PVP.replace('{realm}', realm).replace('{name}', characterName.toLowerCase())}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Battlenet-Namespace': 'profile-us'
-          }
-        }
-      );
-
-      return response.data;
-    } catch (error) {
-      throw this.handleApiError(error);
-    }
-  }
-
-  /**
    * Get realm information
    */
   async getRealm(realmSlug: string, accessToken: string): Promise<any> {
@@ -220,13 +199,11 @@ export class BlizzardApiService {
       const [
         mythicPlus,
         raids,
-        pvp,
         quests,
         achievements
       ] = await Promise.allSettled([
         this.getCharacterMythicPlus(realm, characterName, accessToken),
         this.getCharacterRaids(realm, characterName, accessToken),
-        this.getCharacterPvp(realm, characterName, accessToken),
         this.getCharacterQuests(realm, characterName, accessToken),
         this.getCharacterAchievements(realm, characterName, accessToken)
       ]);
@@ -234,22 +211,20 @@ export class BlizzardApiService {
       const activityData = {
         mythicPlus: mythicPlus.status === 'fulfilled' ? mythicPlus.value : null,
         raids: raids.status === 'fulfilled' ? raids.value : null,
-        pvp: pvp.status === 'fulfilled' ? pvp.value : null,
         quests: quests.status === 'fulfilled' ? quests.value : null,
         achievements: achievements.status === 'fulfilled' ? achievements.value : null,
         errors: {
           mythicPlus: mythicPlus.status === 'rejected' ? mythicPlus.reason?.message || 'Failed to fetch' : null,
           raids: raids.status === 'rejected' ? raids.reason?.message || 'Failed to fetch' : null,
-          pvp: pvp.status === 'rejected' ? pvp.reason?.message || 'Failed to fetch' : null,
           quests: quests.status === 'rejected' ? quests.reason?.message || 'Failed to fetch' : null,
           achievements: achievements.status === 'rejected' ? achievements.reason?.message || 'Failed to fetch' : null
         }
       };
 
       // Log any failed requests
-      [mythicPlus, raids, pvp, quests, achievements].forEach((result, index) => {
+      [mythicPlus, raids, quests, achievements].forEach((result, index) => {
         if (result.status === 'rejected') {
-          const activityNames = ['Mythic+', 'Raids', 'PvP', 'Quests', 'Achievements'];
+          const activityNames = ['Mythic+', 'Raids', 'Quests', 'Achievements'];
           console.warn(`Failed to fetch ${activityNames[index]} data for ${characterName}:`, result.reason);
         }
       });

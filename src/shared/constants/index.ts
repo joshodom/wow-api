@@ -8,7 +8,6 @@ export const BLIZZARD_API_ENDPOINTS = {
   CHARACTER_MYTHIC_PLUS: '/profile/wow/character/{realm}/{name}/mythic-keystone-profile',
   CHARACTER_RAIDS: '/profile/wow/character/{realm}/{name}/encounters/raids',
   CHARACTER_QUESTS: '/profile/wow/character/{realm}/{name}/quests',
-  CHARACTER_PVP: '/profile/wow/character/{realm}/{name}/pvp-summary',
   REALM_INDEX: '/data/wow/realm/index',
   REALM: '/data/wow/realm/{realmSlug}',
   CLASS_INDEX: '/data/wow/playable-class/index',
@@ -51,13 +50,6 @@ export const WEEKLY_ACTIVITIES = {
     name: 'Weekly Quest',
     type: 'QUEST' as const,
     description: 'Complete weekly world quest',
-    resetDay: 'TUESDAY' as const
-  },
-  PVP_WEEKLY: {
-    id: 'pvp_weekly',
-    name: 'PvP Weekly',
-    type: 'PVP' as const,
-    description: 'Complete PvP weekly objectives',
     resetDay: 'TUESDAY' as const
   }
 } as const;
