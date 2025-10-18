@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useCharacter } from '../contexts/CharacterContext'
-import { CheckCircle, XCircle, Clock, User, Bell, LogIn, Shield, Sword, Search, Filter, SortAsc, SortDesc } from 'lucide-react'
+import { CheckCircle, XCircle, User, LogIn, Shield, Sword, Search, Filter, SortAsc, SortDesc } from 'lucide-react'
 import { notificationService } from '../services/NotificationService'
 import { getClassColor, getClassTextColor } from '../utils/classColors'
 
@@ -21,6 +21,7 @@ const DashboardPage: React.FC = () => {
     const [sortBy, setSortBy] = useState<'name' | 'level' | 'class' | 'progress'>('name')
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
     const [showFilters, setShowFilters] = useState(false)
+    const [expandedCharacter, setExpandedCharacter] = useState<number | null>(null)
 
     // Check for notifications on component mount
     useEffect(() => {
@@ -119,6 +120,12 @@ const DashboardPage: React.FC = () => {
         setSortOrder('asc')
     }
 
+    // Handle character card click
+    const handleCharacterClick = (character: any) => {
+        setSelectedCharacter(character)
+        setExpandedCharacter(expandedCharacter === character.characterId ? null : character.characterId)
+    }
+
     if (!user) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -160,22 +167,6 @@ const DashboardPage: React.FC = () => {
         )
     }
 
-    const getActivityIcon = (type: string) => {
-        switch (type) {
-            case 'MYTHIC_PLUS':
-                return <CheckCircle className="h-5 w-5" />
-            case 'RAID':
-                return <XCircle className="h-5 w-5" />
-            case 'QUEST':
-                return <Clock className="h-5 w-5" />
-            default:
-                return <CheckCircle className="h-5 w-5" />
-        }
-    }
-
-    const getActivityColor = (completed: boolean) => {
-        return completed ? 'text-green-600' : 'text-red-600'
-    }
 
     return (
         <div className="space-y-6">
@@ -352,166 +343,133 @@ const DashboardPage: React.FC = () => {
                         {filteredAndSortedCharacters.map((character) => {
                             const classColor = getClassColor(character.className)
 
+                            const isExpanded = expandedCharacter === character.characterId
+                            const isSelected = selectedCharacter?.characterId === character.characterId
+
                             return (
-                                <button
+                                <div
                                     key={character.characterId}
-                                    onClick={() => setSelectedCharacter(character)}
-                                    className={`p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md ${selectedCharacter?.characterId === character.characterId
-                                        ? 'border-blue-500 bg-blue-50 shadow-md'
-                                        : 'border-gray-200 hover:border-gray-300'
+                                    className={`rounded-lg border-2 transition-all duration-300 hover:shadow-md cursor-pointer ${isSelected ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-gray-200 hover:border-gray-300'
                                         }`}
                                 >
-                                    <div className="space-y-3">
-                                        {/* Character Header */}
-                                        <div className="flex items-center space-x-3">
-                                            <div
-                                                className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg border-2 border-black"
-                                                style={{
-                                                    backgroundColor: classColor,
-                                                    color: getClassTextColor(character.className)
-                                                }}
-                                            >
-                                                {character.characterName.charAt(0).toUpperCase()}
-                                            </div>
-                                            <div className="text-left flex-1">
-                                                <h3 className="font-semibold text-gray-900 text-lg">{character.characterName}</h3>
-                                                <p className="text-sm text-gray-600 capitalize">{character.realm}</p>
-                                            </div>
-                                        </div>
-
-                                        {/* Character Details */}
-                                        <div className="space-y-2">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center space-x-2">
-                                                    <Sword className="h-4 w-4 text-gray-500" />
-                                                    <span className="text-sm font-medium" style={{ color: getClassTextColor(character.className) }}>
-                                                        {character.className}
-                                                    </span>
-                                                </div>
-                                                <div className="flex items-center space-x-2">
-                                                    <Shield className="h-4 w-4 text-gray-500" />
-                                                    <span className="text-sm text-gray-600">{character.race}</span>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-sm text-gray-600">Level {character.level}</span>
-                                                <span className={`text-xs px-2 py-1 rounded-full ${character.faction === 'ALLIANCE'
-                                                    ? 'bg-blue-100 text-blue-800'
-                                                    : 'bg-red-100 text-red-800'
-                                                    }`}>
-                                                    {character.faction}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {/* Progress */}
-                                        <div className="pt-2 border-t border-gray-100">
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-xs text-gray-500">Weekly Progress</span>
-                                                <span className="text-xs font-medium text-gray-700">
-                                                    {character.activities.filter((a: any) => a.completed).length} / {character.activities.length}
-                                                </span>
-                                            </div>
-                                            <div className="mt-1 w-full bg-gray-200 rounded-full h-2">
+                                    {/* Character Card Header */}
+                                    <div
+                                        className="p-4"
+                                        onClick={() => handleCharacterClick(character)}
+                                    >
+                                        <div className="space-y-3">
+                                            {/* Character Header */}
+                                            <div className="flex items-center space-x-3">
                                                 <div
-                                                    className="h-2 rounded-full transition-all duration-300"
+                                                    className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg border-2 border-black"
                                                     style={{
                                                         backgroundColor: classColor,
-                                                        width: character.activities.length > 0
-                                                            ? `${(character.activities.filter((a: any) => a.completed).length / character.activities.length) * 100}%`
-                                                            : '0%'
+                                                        color: getClassTextColor(character.className)
                                                     }}
-                                                />
+                                                >
+                                                    {character.characterName.charAt(0).toUpperCase()}
+                                                </div>
+                                                <div className="text-left flex-1">
+                                                    <h3 className="font-semibold text-gray-900 text-lg">{character.characterName}</h3>
+                                                    <p className="text-sm text-gray-600 capitalize">{character.realm}</p>
+                                                </div>
+                                                <div className="flex items-center space-x-2">
+                                                    <span className="text-xs text-gray-500">
+                                                        {character.activities.filter((a: any) => a.completed).length} / {character.activities.length}
+                                                    </span>
+                                                    <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                                                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Character Details */}
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center space-x-2">
+                                                        <Sword className="h-4 w-4 text-gray-500" />
+                                                        <span className="text-sm font-medium" style={{ color: getClassTextColor(character.className) }}>
+                                                            {character.className}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center space-x-2">
+                                                        <Shield className="h-4 w-4 text-gray-500" />
+                                                        <span className="text-sm text-gray-600">{character.race}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-sm text-gray-600">Level {character.level}</span>
+                                                    <span className={`text-xs px-2 py-1 rounded-full ${character.faction === 'ALLIANCE'
+                                                        ? 'bg-blue-100 text-blue-800'
+                                                        : 'bg-red-100 text-red-800'
+                                                        }`}>
+                                                        {character.faction}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Progress Bar */}
+                                            <div className="pt-2 border-t border-gray-100">
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <span className="text-xs text-gray-500">Weekly Progress</span>
+                                                </div>
+                                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                                    <div
+                                                        className="h-2 rounded-full transition-all duration-300"
+                                                        style={{
+                                                            backgroundColor: classColor,
+                                                            width: character.activities.length > 0
+                                                                ? `${(character.activities.filter((a: any) => a.completed).length / character.activities.length) * 100}%`
+                                                                : '0%'
+                                                        }}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </button>
+
+                                    {/* Expandable Activity Details */}
+                                    {isExpanded && (
+                                        <div className="border-t border-gray-200 bg-gray-50 p-4 space-y-3">
+                                            <h4 className="font-medium text-gray-900 text-sm mb-3">Weekly Activities</h4>
+                                            <div className="space-y-2">
+                                                {character.activities.map((activity: any, index: number) => (
+                                                    <div key={index} className="flex items-center justify-between p-2 bg-white rounded border">
+                                                        <div className="flex items-center space-x-2">
+                                                            {activity.completed ? (
+                                                                <CheckCircle className="h-4 w-4 text-green-500" />
+                                                            ) : (
+                                                                <XCircle className="h-4 w-4 text-red-500" />
+                                                            )}
+                                                            <span className="text-sm font-medium text-gray-900">{activity.name}</span>
+                                                        </div>
+                                                        <div className="flex items-center space-x-2">
+                                                            <span className={`text-xs px-2 py-1 rounded-full ${activity.completed ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                                                                }`}>
+                                                                {activity.completed ? 'Completed' : 'Pending'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="pt-2 border-t border-gray-200">
+                                                <div className="flex items-center justify-between text-xs text-gray-500">
+                                                    <span>Last updated: {character.lastUpdated.toLocaleDateString()}</span>
+                                                    <span>{character.activities.filter((a: any) => a.completed).length} of {character.activities.length} completed</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             )
                         })}
                     </div>
                 )}
             </div>
 
-            {/* Weekly Activities */}
-            {selectedCharacter && (
-                <div className="card">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-lg font-semibold text-gray-900">
-                            Weekly Activities - {selectedCharacter.characterName}
-                        </h2>
-                        <div className="flex items-center space-x-4">
-                            <div className="flex items-center space-x-2">
-                                <Bell className={`h-4 w-4 ${notificationService.hasPermission() ? 'text-green-500' : 'text-gray-400'}`} />
-                                <span className="text-xs text-gray-500">
-                                    {notificationService.hasPermission() ? 'Notifications On' : 'Notifications Off'}
-                                </span>
-                            </div>
-                            <span className="text-sm text-gray-500">
-                                Last updated: {selectedCharacter.lastUpdated.toLocaleDateString()}
-                            </span>
-                        </div>
-                    </div>
-
-                    {isLoading ? (
-                        <div className="text-center py-8">
-                            <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent mx-auto" />
-                            <p className="mt-2 text-gray-600">Loading activities...</p>
-                        </div>
-                    ) : (
-                        <div className="space-y-4">
-                            {selectedCharacter.activities.length === 0 ? (
-                                <div className="text-center py-8 text-gray-500">
-                                    <p>No weekly activities found for this character.</p>
-                                    <p className="text-sm mt-1">Activities will appear here once they're detected.</p>
-                                </div>
-                            ) : (
-                                selectedCharacter.activities.map((activity: any) => (
-                                    <div
-                                        key={activity.id}
-                                        className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-                                    >
-                                        <div className="flex items-center space-x-3">
-                                            <div className={getActivityColor(activity.completed)}>
-                                                {getActivityIcon(activity.type)}
-                                            </div>
-                                            <div>
-                                                <h3 className="font-medium text-gray-900">{activity.name}</h3>
-                                                <p className="text-sm text-gray-600">{activity.description}</p>
-                                                {activity.progress !== undefined && activity.maxProgress !== undefined && (
-                                                    <div className="mt-1">
-                                                        <div className="w-32 bg-gray-200 rounded-full h-2">
-                                                            <div
-                                                                className="bg-blue-600 h-2 rounded-full"
-                                                                style={{
-                                                                    width: `${(activity.progress / activity.maxProgress) * 100}%`
-                                                                }}
-                                                            />
-                                                        </div>
-                                                        <span className="text-xs text-gray-500">
-                                                            {activity.progress} / {activity.maxProgress}
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className={`text-sm font-medium ${getActivityColor(activity.completed)}`}>
-                                                {activity.completed ? 'Completed' : 'Incomplete'}
-                                            </div>
-                                            {activity.completedAt && (
-                                                <div className="text-xs text-gray-500">
-                                                    {activity.completedAt.toLocaleDateString()}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    )}
-                </div>
-            )}
         </div>
     )
 }

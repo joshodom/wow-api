@@ -44,7 +44,7 @@ export class ActivityTrackingService {
           activity.completed = this.checkQuestCompletion(activityData.quests);
           break;
         default:
-          console.warn(`Unknown activity type: ${(activityTemplate as any).type}`);
+          console.warn(`Unknown activity type: ${activityTemplate.type}`);
           activity.completed = false;
           break;
       }
