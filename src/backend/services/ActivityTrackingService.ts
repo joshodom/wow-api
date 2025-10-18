@@ -59,13 +59,17 @@ export class ActivityTrackingService {
             activity.completed = this.checkPvpCompletion(activityData.pvp);
           }
           break;
-        case 'QUEST':
-          if (activityData.errors?.quests) {
-            activity.error = activityData.errors.quests;
-          } else {
-            activity.completed = this.checkQuestCompletion(activityData.quests);
-          }
-          break;
+            case 'QUEST':
+              if (activityData.errors?.quests) {
+                activity.error = activityData.errors.quests;
+              } else {
+                const questResult = this.checkQuestCompletion(activityData.quests);
+                activity.completed = questResult.completed;
+                if (questResult.questDetails) {
+                  activity.questDetails = questResult.questDetails;
+                }
+              }
+              break;
       }
 
       activities.push(activity);
@@ -201,10 +205,10 @@ export class ActivityTrackingService {
   }
 
   /**
-   * Check if Quest weekly activity is completed
+   * Check if Quest weekly activity is completed and return quest details
    */
-  private static checkQuestCompletion(questData: any): boolean {
-    if (!questData) return false;
+  private static checkQuestCompletion(questData: any): { completed: boolean; questDetails?: any } {
+    if (!questData) return { completed: false };
 
     try {
       // The quest API returns completed quests with timestamps
@@ -213,7 +217,7 @@ export class ActivityTrackingService {
       
       if (quests.length === 0) {
         console.log('No completed quests found');
-        return false;
+        return { completed: false };
       }
       
       // Get this week's timestamp (Tuesday 10 AM UTC reset)
@@ -233,25 +237,37 @@ export class ActivityTrackingService {
       if (hasWeeklyActivity) {
         console.log('✅ Weekly quest activity completed - character completed quests this week');
         
-        // Log some of the recent quests for debugging
-        const recentQuests = thisWeekQuests
-          .sort((a: any, b: any) => b.completed_timestamp - a.completed_timestamp)
-          .slice(0, 3);
+        // Prepare quest details for the UI
+        const questDetails = {
+          completedQuests: thisWeekQuests
+            .sort((a: any, b: any) => b.completed_timestamp - a.completed_timestamp)
+            .map((quest: any) => {
+              const questName = quest.quest?.name?.en_US || 'Unknown';
+              const completedDate = new Date(quest.completed_timestamp);
+              const hoursAgo = Math.floor((Date.now() - quest.completed_timestamp) / (1000 * 60 * 60));
+              
+              return {
+                name: questName,
+                completedAt: completedDate,
+                hoursAgo: hoursAgo
+              };
+            }),
+          totalQuestsThisWeek: thisWeekQuests.length
+        };
         
-        recentQuests.forEach((quest: any, index: number) => {
-          const questName = quest.quest?.name?.en_US || 'Unknown';
-          const completedDate = new Date(quest.completed_timestamp);
-          const hoursAgo = Math.floor((Date.now() - quest.completed_timestamp) / (1000 * 60 * 60));
-          console.log(`  ${index + 1}. ${questName} (${hoursAgo}h ago)`);
+        // Log some of the recent quests for debugging
+        questDetails.completedQuests.slice(0, 3).forEach((quest: any, index: number) => {
+          console.log(`  ${index + 1}. ${quest.name} (${quest.hoursAgo}h ago)`);
         });
+        
+        return { completed: true, questDetails };
       } else {
         console.log('❌ Weekly quest activity not completed - no quests completed this week');
+        return { completed: false };
       }
-      
-      return hasWeeklyActivity;
     } catch (error) {
       console.error('Error checking Quest completion:', error);
-      return false;
+      return { completed: false };
     }
   }
 

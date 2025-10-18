@@ -442,27 +442,59 @@ const DashboardPage: React.FC = () => {
                                             <h4 className="font-medium text-gray-900 text-sm mb-3">Weekly Activities</h4>
                                             <div className="space-y-2">
                                                 {character.activities.map((activity: any, index: number) => (
-                                                    <div key={index} className="flex items-center justify-between p-2 bg-white rounded border">
-                                                        <div className="flex items-center space-x-2">
-                                                            {activity.error ? (
-                                                                <XCircle className="h-4 w-4 text-red-500" />
-                                                            ) : activity.completed ? (
-                                                                <CheckCircle className="h-4 w-4 text-green-500" />
-                                                            ) : (
-                                                                <XCircle className="h-4 w-4 text-gray-400" />
-                                                            )}
-                                                            <span className="text-sm font-medium text-gray-900">{activity.name}</span>
+                                                    <div key={index} className="bg-white rounded border">
+                                                        {/* Main Activity Row */}
+                                                        <div className="flex items-center justify-between p-2">
+                                                            <div className="flex items-center space-x-2">
+                                                                {activity.error ? (
+                                                                    <XCircle className="h-4 w-4 text-red-500" />
+                                                                ) : activity.completed ? (
+                                                                    <CheckCircle className="h-4 w-4 text-green-500" />
+                                                                ) : (
+                                                                    <XCircle className="h-4 w-4 text-gray-400" />
+                                                                )}
+                                                                <span className="text-sm font-medium text-gray-900">{activity.name}</span>
+                                                            </div>
+                                                            <div className="flex items-center space-x-2">
+                                                                <span className={`text-xs px-2 py-1 rounded-full ${activity.error
+                                                                        ? 'bg-red-100 text-red-800'
+                                                                        : activity.completed
+                                                                            ? 'bg-green-100 text-green-800'
+                                                                            : 'bg-gray-100 text-gray-600'
+                                                                    }`}>
+                                                                    {activity.error ? 'Error' : activity.completed ? 'Completed' : 'Incomplete'}
+                                                                </span>
+                                                            </div>
                                                         </div>
-                                                        <div className="flex items-center space-x-2">
-                                                            <span className={`text-xs px-2 py-1 rounded-full ${activity.error
-                                                                    ? 'bg-red-100 text-red-800'
-                                                                    : activity.completed
-                                                                        ? 'bg-green-100 text-green-800'
-                                                                        : 'bg-gray-100 text-gray-600'
-                                                                }`}>
-                                                                {activity.error ? 'Error' : activity.completed ? 'Completed' : 'Incomplete'}
-                                                            </span>
-                                                        </div>
+                                                        
+                                                        {/* Quest Details (if available) */}
+                                                        {activity.type === 'QUEST' && activity.questDetails && (
+                                                            <div className="px-2 pb-2 border-t border-gray-100">
+                                                                <div className="mt-2">
+                                                                    <div className="text-xs text-gray-600 mb-1">
+                                                                        {activity.questDetails.totalQuestsThisWeek} quest{activity.questDetails.totalQuestsThisWeek !== 1 ? 's' : ''} completed this week:
+                                                                    </div>
+                                                                    <div className="space-y-1 max-h-32 overflow-y-auto">
+                                                                        {activity.questDetails.completedQuests.slice(0, 10).map((quest: any, questIndex: number) => (
+                                                                            <div key={questIndex} className="flex items-center justify-between text-xs bg-gray-50 rounded px-2 py-1">
+                                                                                <span className="text-gray-700 truncate flex-1 mr-2">{quest.name}</span>
+                                                                                <span className="text-gray-500 whitespace-nowrap">
+                                                                                    {quest.hoursAgo < 24 
+                                                                                        ? `${quest.hoursAgo}h ago`
+                                                                                        : `${Math.floor(quest.hoursAgo / 24)}d ago`
+                                                                                    }
+                                                                                </span>
+                                                                            </div>
+                                                                        ))}
+                                                                        {activity.questDetails.completedQuests.length > 10 && (
+                                                                            <div className="text-xs text-gray-500 text-center py-1">
+                                                                                ... and {activity.questDetails.completedQuests.length - 10} more
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 ))}
                                             </div>

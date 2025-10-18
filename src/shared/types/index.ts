@@ -55,6 +55,15 @@ export interface WeeklyActivity {
   maxProgress?: number;
   resetDay: 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY' | 'MONDAY';
   error?: string;
+  // Quest-specific details
+  questDetails?: {
+    completedQuests: Array<{
+      name: string;
+      completedAt: Date;
+      hoursAgo: number;
+    }>;
+    totalQuestsThisWeek: number;
+  };
 }
 
 export interface CharacterProgress {
