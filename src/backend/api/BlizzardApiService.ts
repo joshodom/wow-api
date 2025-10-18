@@ -148,6 +148,19 @@ export class BlizzardApiService {
         }
       );
 
+      // The quest API returns a structure with completed quests as a separate endpoint
+      // We need to fetch the completed quests separately
+      if (response.data.completed && response.data.completed.href) {
+        const completedResponse = await axios.get(response.data.completed.href, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Battlenet-Namespace': 'profile-us'
+          }
+        });
+        
+        return completedResponse.data;
+      }
+
       return response.data;
     } catch (error) {
       throw this.handleApiError(error);

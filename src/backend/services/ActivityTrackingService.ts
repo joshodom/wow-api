@@ -207,17 +207,48 @@ export class ActivityTrackingService {
     if (!questData) return false;
 
     try {
+      // The quest API returns completed quests with timestamps
       // Check if character has completed any quests this week
       const quests = questData.quests || [];
       
-      // Look for weekly quests or world quests
-      const weeklyQuests = quests.filter((quest: any) => 
-        quest.name?.includes('Weekly') || 
-        quest.name?.includes('World Quest') ||
-        quest.category?.name === 'Weekly'
+      if (quests.length === 0) {
+        console.log('No completed quests found');
+        return false;
+      }
+      
+      // Get this week's timestamp (Tuesday 10 AM UTC reset)
+      const thisWeek = this.getThisWeekTimestamp();
+      
+      // Check if any quests were completed this week
+      const thisWeekQuests = quests.filter((quest: any) => 
+        quest.completed_timestamp && quest.completed_timestamp >= thisWeek
       );
-
-      return weeklyQuests.length > 0;
+      
+      console.log(`Found ${thisWeekQuests.length} quests completed this week out of ${quests.length} total`);
+      
+      // If any quests were completed this week, consider weekly quest activity as completed
+      // This is a simple but effective heuristic for weekly quest tracking
+      const hasWeeklyActivity = thisWeekQuests.length > 0;
+      
+      if (hasWeeklyActivity) {
+        console.log('✅ Weekly quest activity completed - character completed quests this week');
+        
+        // Log some of the recent quests for debugging
+        const recentQuests = thisWeekQuests
+          .sort((a: any, b: any) => b.completed_timestamp - a.completed_timestamp)
+          .slice(0, 3);
+        
+        recentQuests.forEach((quest: any, index: number) => {
+          const questName = quest.quest?.name?.en_US || 'Unknown';
+          const completedDate = new Date(quest.completed_timestamp);
+          const hoursAgo = Math.floor((Date.now() - quest.completed_timestamp) / (1000 * 60 * 60));
+          console.log(`  ${index + 1}. ${questName} (${hoursAgo}h ago)`);
+        });
+      } else {
+        console.log('❌ Weekly quest activity not completed - no quests completed this week');
+      }
+      
+      return hasWeeklyActivity;
     } catch (error) {
       console.error('Error checking Quest completion:', error);
       return false;
