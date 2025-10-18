@@ -197,6 +197,52 @@ export class BlizzardApiService {
   }
 
   /**
+   * Get all weekly activity data for a character
+   */
+  async getCharacterActivityData(realm: string, characterName: string, accessToken: string): Promise<any> {
+    try {
+      console.log(`Fetching activity data for ${characterName}@${realm}`);
+      
+      // Fetch all activity data in parallel
+      const [
+        mythicPlus,
+        raids,
+        pvp,
+        quests,
+        achievements
+      ] = await Promise.allSettled([
+        this.getCharacterMythicPlus(realm, characterName, accessToken),
+        this.getCharacterRaids(realm, characterName, accessToken),
+        this.getCharacterPvp(realm, characterName, accessToken),
+        this.getCharacterQuests(realm, characterName, accessToken),
+        this.getCharacterAchievements(realm, characterName, accessToken)
+      ]);
+
+      const activityData = {
+        mythicPlus: mythicPlus.status === 'fulfilled' ? mythicPlus.value : null,
+        raids: raids.status === 'fulfilled' ? raids.value : null,
+        pvp: pvp.status === 'fulfilled' ? pvp.value : null,
+        quests: quests.status === 'fulfilled' ? quests.value : null,
+        achievements: achievements.status === 'fulfilled' ? achievements.value : null
+      };
+
+      // Log any failed requests
+      [mythicPlus, raids, pvp, quests, achievements].forEach((result, index) => {
+        if (result.status === 'rejected') {
+          const activityNames = ['Mythic+', 'Raids', 'PvP', 'Quests', 'Achievements'];
+          console.warn(`Failed to fetch ${activityNames[index]} data for ${characterName}:`, result.reason);
+        }
+      });
+
+      console.log(`Successfully fetched activity data for ${characterName}`);
+      return activityData;
+    } catch (error) {
+      console.error(`Error fetching activity data for ${characterName}:`, error);
+      throw this.handleApiError(error);
+    }
+  }
+
+  /**
    * Handle API errors
    */
   private handleApiError(error: any): Error {

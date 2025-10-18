@@ -6,6 +6,7 @@ import { BlizzardAuthService } from './auth/BlizzardAuthService';
 import { BlizzardApiService } from './api/BlizzardApiService';
 import { DatabaseService } from './database/DatabaseService';
 import { JwtService } from './auth/JwtService';
+import { ActivityTrackingService } from './services/ActivityTrackingService';
 import { AppConfig, UserProfile } from '../shared/types';
 
 // Load environment variables
@@ -104,6 +105,34 @@ class WoWWeeklyTrackerServer {
         console.log('Fetching character list with access token:', token.access_token.substring(0, 20) + '...');
         const characters = await this.apiService.getCharacterList(token.access_token);
         console.log('Retrieved characters:', characters.length, 'characters');
+        
+        // Fetch activity data for each character
+        console.log('🔄 Fetching activity data for all characters...');
+        for (const character of characters) {
+          try {
+            console.log(`📊 Fetching activities for ${character.name}@${character.realm.slug}`);
+            
+            const activityData = await this.apiService.getCharacterActivityData(
+              character.realm.slug,
+              character.name,
+              token.access_token
+            );
+            
+            // Analyze weekly activities
+            const weeklyActivities = ActivityTrackingService.analyzeWeeklyActivities(
+              character.id,
+              activityData
+            );
+            
+            console.log(`✅ Found ${weeklyActivities.filter(a => a.completed).length}/${weeklyActivities.length} completed activities for ${character.name}`);
+            
+            // Store activity data in character object (we'll save this to database later)
+            (character as any).weeklyActivities = weeklyActivities;
+          } catch (error) {
+            console.error(`❌ Failed to fetch activities for ${character.name}:`, error);
+            // Continue with other characters even if one fails
+          }
+        }
         
         // Create user profile
         const userProfile: UserProfile = {
@@ -217,25 +246,49 @@ class WoWWeeklyTrackerServer {
             try {
               // Refresh each character's data
               for (const character of user.characters) {
-                const profile = await this.apiService.getCharacterProfile(
-                  character.realm.slug,
-                  character.name,
-                  user.accessToken.access_token
-                );
-                
-                if (profile) {
-                  // Update character data with fresh profile information
-                  await this.databaseService.updateCharacterProgress(character.id, {
-                    characterId: character.id,
-                    characterName: character.name,
-                    realm: character.realm.slug,
-                    race: character.playable_race.name.en_US,
-                    className: character.playable_class.name.en_US,
-                    level: character.level,
-                    faction: character.faction.type,
-                    activities: [], // TODO: Implement actual activity fetching
-                    lastUpdated: new Date()
-                  });
+                try {
+                  console.log(`🔄 Refreshing data for ${character.name}@${character.realm.slug}`);
+                  
+                  // Fetch character profile and activity data
+                  const [profile, activityData] = await Promise.all([
+                    this.apiService.getCharacterProfile(
+                      character.realm.slug,
+                      character.name,
+                      user.accessToken.access_token
+                    ),
+                    this.apiService.getCharacterActivityData(
+                      character.realm.slug,
+                      character.name,
+                      user.accessToken.access_token
+                    )
+                  ]);
+                  
+                  if (profile && activityData) {
+                    // Analyze weekly activities
+                    const weeklyActivities = ActivityTrackingService.analyzeWeeklyActivities(
+                      character.id,
+                      activityData
+                    );
+                    
+                    console.log(`📊 Found ${weeklyActivities.filter(a => a.completed).length}/${weeklyActivities.length} completed activities for ${character.name}`);
+                    
+                    // Update character data with fresh profile information and activities
+                    await this.databaseService.updateCharacterProgress(character.id, {
+                      characterId: character.id,
+                      characterName: character.name,
+                      realm: character.realm.slug,
+                      race: character.playable_race.name.en_US,
+                      className: character.playable_class.name.en_US,
+                      level: character.level,
+                      faction: character.faction.type,
+                      activities: weeklyActivities,
+                      lastUpdated: new Date()
+                    });
+                    
+                    console.log(`✅ Updated ${character.name} with ${weeklyActivities.length} activities`);
+                  }
+                } catch (error) {
+                  console.error(`❌ Failed to refresh ${character.name}:`, error);
                 }
               }
               console.log(`✅ Refreshed data for user ${user.battleTag}`);
