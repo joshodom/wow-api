@@ -350,13 +350,12 @@ const DashboardPage: React.FC = () => {
                             return (
                                 <div
                                     key={character.characterId}
-                                    className={`rounded-lg border-2 transition-all duration-300 hover:shadow-md cursor-pointer ${
-                                        hasErrors 
-                                            ? 'border-red-300 bg-red-50' 
-                                            : isSelected 
-                                                ? 'border-blue-500 bg-blue-50 shadow-md' 
+                                    className={`rounded-lg border-2 transition-all duration-300 hover:shadow-md cursor-pointer ${hasErrors
+                                            ? 'border-red-300 bg-red-50'
+                                            : isSelected
+                                                ? 'border-blue-500 bg-blue-50 shadow-md'
                                                 : 'border-gray-200 hover:border-gray-300'
-                                    }`}
+                                        }`}
                                 >
                                     {/* Character Card Header */}
                                     <div
@@ -455,13 +454,12 @@ const DashboardPage: React.FC = () => {
                                                             <span className="text-sm font-medium text-gray-900">{activity.name}</span>
                                                         </div>
                                                         <div className="flex items-center space-x-2">
-                                                            <span className={`text-xs px-2 py-1 rounded-full ${
-                                                                activity.error 
+                                                            <span className={`text-xs px-2 py-1 rounded-full ${activity.error
                                                                     ? 'bg-red-100 text-red-800'
-                                                                    : activity.completed 
-                                                                        ? 'bg-green-100 text-green-800' 
+                                                                    : activity.completed
+                                                                        ? 'bg-green-100 text-green-800'
                                                                         : 'bg-gray-100 text-gray-600'
-                                                            }`}>
+                                                                }`}>
                                                                 {activity.error ? 'Error' : activity.completed ? 'Completed' : 'Incomplete'}
                                                             </span>
                                                         </div>
