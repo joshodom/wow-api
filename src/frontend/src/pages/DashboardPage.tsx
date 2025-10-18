@@ -111,7 +111,7 @@ const DashboardPage: React.FC = () => {
                                         {/* Character Header */}
                                         <div className="flex items-center space-x-3">
                                             <div
-                                                className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg"
+                                                className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg border-2 border-black"
                                                 style={{ 
                                                     backgroundColor: classColor,
                                                     color: getClassTextColor(character.className)
