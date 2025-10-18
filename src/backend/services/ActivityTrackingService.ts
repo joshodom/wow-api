@@ -43,10 +43,6 @@ export class ActivityTrackingService {
         case 'QUEST':
           activity.completed = this.checkQuestCompletion(activityData.quests);
           break;
-        default:
-          console.warn(`Unknown activity type: ${activityTemplate.type}`);
-          activity.completed = false;
-          break;
       }
 
       activities.push(activity);

@@ -55,7 +55,7 @@ export class BlizzardApiService {
   async getCharacterProfile(realm: string, characterName: string, accessToken: string): Promise<BlizzardCharacter> {
     try {
       const response: AxiosResponse<BlizzardCharacter> = await axios.get(
-        `${this.apiBaseUrl}${BLIZZARD_API_ENDPOINTS.CHARACTER_PROFILE}/${realm}/${characterName}`,
+        `${this.apiBaseUrl}${BLIZZARD_API_ENDPOINTS.CHARACTER_PROFILE}/${realm}/${characterName.toLowerCase()}`,
         {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -76,7 +76,7 @@ export class BlizzardApiService {
   async getCharacterAchievements(realm: string, characterName: string, accessToken: string): Promise<any> {
     try {
       const response = await axios.get(
-        `${this.apiBaseUrl}${BLIZZARD_API_ENDPOINTS.CHARACTER_ACHIEVEMENTS.replace('{realm}', realm).replace('{name}', characterName)}`,
+        `${this.apiBaseUrl}${BLIZZARD_API_ENDPOINTS.CHARACTER_ACHIEVEMENTS.replace('{realm}', realm).replace('{name}', characterName.toLowerCase())}`,
         {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -97,7 +97,7 @@ export class BlizzardApiService {
   async getCharacterMythicPlus(realm: string, characterName: string, accessToken: string): Promise<any> {
     try {
       const response = await axios.get(
-        `${this.apiBaseUrl}${BLIZZARD_API_ENDPOINTS.CHARACTER_MYTHIC_PLUS.replace('{realm}', realm).replace('{name}', characterName)}`,
+        `${this.apiBaseUrl}${BLIZZARD_API_ENDPOINTS.CHARACTER_MYTHIC_PLUS.replace('{realm}', realm).replace('{name}', characterName.toLowerCase())}`,
         {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -118,7 +118,7 @@ export class BlizzardApiService {
   async getCharacterRaids(realm: string, characterName: string, accessToken: string): Promise<any> {
     try {
       const response = await axios.get(
-        `${this.apiBaseUrl}${BLIZZARD_API_ENDPOINTS.CHARACTER_RAIDS.replace('{realm}', realm).replace('{name}', characterName)}`,
+        `${this.apiBaseUrl}${BLIZZARD_API_ENDPOINTS.CHARACTER_RAIDS.replace('{realm}', realm).replace('{name}', characterName.toLowerCase())}`,
         {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -139,7 +139,7 @@ export class BlizzardApiService {
   async getCharacterQuests(realm: string, characterName: string, accessToken: string): Promise<any> {
     try {
       const response = await axios.get(
-        `${this.apiBaseUrl}${BLIZZARD_API_ENDPOINTS.CHARACTER_QUESTS.replace('{realm}', realm).replace('{name}', characterName)}`,
+        `${this.apiBaseUrl}${BLIZZARD_API_ENDPOINTS.CHARACTER_QUESTS.replace('{realm}', realm).replace('{name}', characterName.toLowerCase())}`,
         {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -160,7 +160,7 @@ export class BlizzardApiService {
   async getCharacterPvp(realm: string, characterName: string, accessToken: string): Promise<any> {
     try {
       const response = await axios.get(
-        `${this.apiBaseUrl}${BLIZZARD_API_ENDPOINTS.CHARACTER_PVP.replace('{realm}', realm).replace('{name}', characterName)}`,
+        `${this.apiBaseUrl}${BLIZZARD_API_ENDPOINTS.CHARACTER_PVP.replace('{realm}', realm).replace('{name}', characterName.toLowerCase())}`,
         {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
