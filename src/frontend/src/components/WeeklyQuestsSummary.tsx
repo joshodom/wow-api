@@ -20,11 +20,21 @@ const WeeklyQuestsSummary: React.FC = () => {
     // Calculate which seasonal events are currently active
     const activeSeasonalEvents = useMemo(() => {
         const now = new Date()
-        return Object.values(SEASONAL_EVENTS).filter(event => {
-            const startDate = new Date(event.startDate)
-            const endDate = new Date(event.endDate)
-            return now >= startDate && now <= endDate
+        console.log('🎃 Checking seasonal events at:', now.toISOString())
+        
+        const active = Object.values(SEASONAL_EVENTS).filter(event => {
+            const startDate = new Date(event.startDate + 'T00:00:00')
+            const endDate = new Date(event.endDate + 'T23:59:59')
+            
+            const isActive = now >= startDate && now <= endDate
+            console.log(`Event ${event.name}: ${event.startDate} to ${event.endDate} - Active: ${isActive}`)
+            console.log(`  Start: ${startDate.toISOString()}, End: ${endDate.toISOString()}, Now: ${now.toISOString()}`)
+            
+            return isActive
         })
+        
+        console.log(`Found ${active.length} active seasonal events:`, active.map(e => e.name))
+        return active
     }, [])
 
     // Helper to get icon for quest type

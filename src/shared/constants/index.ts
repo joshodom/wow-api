@@ -182,8 +182,8 @@ export const SEASONAL_EVENTS = {
   HALLOWS_END: {
     id: 'hallows_end',
     name: 'Hallow\'s End',
-    startDate: '2024-10-18',
-    endDate: '2024-11-01',
+    startDate: '2025-10-18',
+    endDate: '2025-11-01',
     objectives: [
       'Defeat the Headless Horseman daily',
       'Collect Tricky Treats from candy buckets',
@@ -196,8 +196,8 @@ export const SEASONAL_EVENTS = {
   PILGRIMS_BOUNTY: {
     id: 'pilgrims_bounty',
     name: 'Pilgrim\'s Bounty',
-    startDate: '2024-11-18',
-    endDate: '2024-11-25',
+    startDate: '2025-11-17',
+    endDate: '2025-11-24',
     objectives: [
       'Share a feast at each capital city',
       'Complete daily cooking quests',
@@ -209,8 +209,8 @@ export const SEASONAL_EVENTS = {
   FEAST_OF_WINTER_VEIL: {
     id: 'winter_veil',
     name: 'Feast of Winter Veil',
-    startDate: '2024-12-16',
-    endDate: '2025-01-02',
+    startDate: '2025-12-16',
+    endDate: '2026-01-02',
     objectives: [
       'Complete daily quests for Smokywood Pastures',
       'Collect gifts under the Winter Veil tree',
