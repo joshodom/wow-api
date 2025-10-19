@@ -71,11 +71,18 @@ const getActivityColor = (activityType: string, completed: boolean, error?: stri
     }
 }
 
-// Helper function to calculate progress percentage
+// Helper function to filter out seasonal activities from progress calculations
+const getNonSeasonalActivities = (activities: any[]) => {
+    return activities.filter((a: any) => a.type !== 'SEASONAL')
+}
+
+// Helper function to calculate progress percentage (excluding seasonal activities)
 const getProgressPercentage = (character: any) => {
     if (!character.activities || character.activities.length === 0) return 0
-    const completed = character.activities.filter((a: any) => a.completed).length
-    return Math.round((completed / character.activities.length) * 100)
+    const nonSeasonalActivities = getNonSeasonalActivities(character.activities)
+    if (nonSeasonalActivities.length === 0) return 0
+    const completed = nonSeasonalActivities.filter((a: any) => a.completed).length
+    return Math.round((completed / nonSeasonalActivities.length) * 100)
 }
 
 // Helper function to get progress status
@@ -177,8 +184,10 @@ const DashboardPage: React.FC = () => {
                     comparison = a.className.localeCompare(b.className)
                     break
                 case 'progress':
-                    const aProgress = a.activities.filter((act: any) => act.completed).length / a.activities.length
-                    const bProgress = b.activities.filter((act: any) => act.completed).length / b.activities.length
+                    const aNonSeasonal = getNonSeasonalActivities(a.activities)
+                    const bNonSeasonal = getNonSeasonalActivities(b.activities)
+                    const aProgress = aNonSeasonal.length > 0 ? aNonSeasonal.filter((act: any) => act.completed).length / aNonSeasonal.length : 0
+                    const bProgress = bNonSeasonal.length > 0 ? bNonSeasonal.filter((act: any) => act.completed).length / bNonSeasonal.length : 0
                     comparison = aProgress - bProgress
                     break
             }
@@ -537,7 +546,7 @@ const DashboardPage: React.FC = () => {
                                                         <div className="flex items-center space-x-2">
                                                             <Sparkles className="h-4 w-4 text-yellow-500" />
                                                             <span className="text-sm font-bold text-gray-700">
-                                                                {character.activities.filter((a: any) => a.completed).length}/{character.activities.length}
+                                                                {getNonSeasonalActivities(character.activities).filter((a: any) => a.completed).length}/{getNonSeasonalActivities(character.activities).length}
                                                             </span>
                                                         </div>
                                                         {character.mythicPlusScore > 0 && (
@@ -589,7 +598,7 @@ const DashboardPage: React.FC = () => {
                                                         </div>
                                                         <div className="flex items-center space-x-2">
                                                             <span className="text-sm font-bold text-gray-800">
-                                                                {character.activities.filter((a: any) => a.completed).length}/{character.activities.length}
+                                                                {getNonSeasonalActivities(character.activities).filter((a: any) => a.completed).length}/{getNonSeasonalActivities(character.activities).length}
                                                             </span>
                                                             <span className={`text-sm px-3 py-1 rounded-full font-bold ${getProgressStatus(getProgressPercentage(character)).color} text-white shadow-sm`}>
                                                                 {getProgressPercentage(character)}%
@@ -600,8 +609,8 @@ const DashboardPage: React.FC = () => {
                                                         <div
                                                             className={`progress-bar-fill ${getProgressStatus(getProgressPercentage(character)).color.replace('bg-', 'bg-gradient-to-r from-').replace('-500', '-400 to-').replace('-500', '-600')}`}
                                                             style={{
-                                                                width: character.activities.length > 0
-                                                                    ? `${(character.activities.filter((a: any) => a.completed).length / character.activities.length) * 100}%`
+                                                                width: getNonSeasonalActivities(character.activities).length > 0
+                                                                    ? `${(getNonSeasonalActivities(character.activities).filter((a: any) => a.completed).length / getNonSeasonalActivities(character.activities).length) * 100}%`
                                                                     : '0%'
                                                             }}
                                                         >
@@ -638,7 +647,7 @@ const DashboardPage: React.FC = () => {
                                                         </h4>
                                                         <div className="flex items-center space-x-2">
                                                             <span className="text-xs text-gray-500">
-                                                                {character.activities.filter((a: any) => a.completed).length} of {character.activities.length} completed
+                                                                {getNonSeasonalActivities(character.activities).filter((a: any) => a.completed).length} of {getNonSeasonalActivities(character.activities).length} completed
                                                             </span>
                                                         </div>
                                                     </div>
@@ -740,13 +749,13 @@ const DashboardPage: React.FC = () => {
                                                                 <div className="flex items-center space-x-1">
                                                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                                                     <span className="text-xs font-medium text-green-600">
-                                                                        {character.activities.filter((a: any) => a.completed).length} completed
+                                                                        {getNonSeasonalActivities(character.activities).filter((a: any) => a.completed).length} completed
                                                                     </span>
                                                                 </div>
                                                                 <div className="flex items-center space-x-1">
                                                                     <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
                                                                     <span className="text-xs font-medium text-gray-500">
-                                                                        {character.activities.filter((a: any) => !a.completed && !a.error).length} pending
+                                                                        {getNonSeasonalActivities(character.activities).filter((a: any) => !a.completed && !a.error).length} pending
                                                                     </span>
                                                                 </div>
                                                                 {character.activities.some((a: any) => a.error) && (
