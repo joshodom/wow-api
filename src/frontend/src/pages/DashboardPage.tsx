@@ -2,20 +2,29 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useCharacter } from '../contexts/CharacterContext'
-import { CheckCircle, XCircle, User, LogIn, Shield, Search, Filter, SortAsc, SortDesc, Zap, Target, Trophy, Star, Clock, TrendingUp, ChevronDown, Sparkles, Activity } from 'lucide-react'
+import { CheckCircle, XCircle, User, LogIn, Shield, Search, Filter, SortAsc, SortDesc, Zap, Target, Trophy, Star, Clock, TrendingUp, ChevronDown, Sparkles, Activity, Swords, Skull } from 'lucide-react'
 import { notificationService } from '../services/NotificationService'
 import { getClassColor, getClassTextColor } from '../utils/classColors'
 import ResetStatusComponent from '../components/ResetStatusComponent'
 import AutoRefreshComponent from '../components/AutoRefreshComponent'
+import WeeklyQuestsSummary from '../components/WeeklyQuestsSummary'
 import { LoadingSpinner, SkeletonCharacterCard } from '../components/LoadingComponents'
 import { CharacterTooltip } from '../components/Tooltip'
 
 // Helper function to get activity icon
-const getActivityIcon = (activityType: string) => {
+const getActivityIcon = (activityType: string, activityName?: string) => {
     switch (activityType) {
         case 'MYTHIC_PLUS':
             return <Zap className="h-4 w-4" />
         case 'RAID':
+            // Different icons for different raid difficulties
+            if (activityName?.includes('Normal')) {
+                return <Shield className="h-4 w-4" />
+            } else if (activityName?.includes('Heroic')) {
+                return <Swords className="h-4 w-4" />
+            } else if (activityName?.includes('Mythic')) {
+                return <Skull className="h-4 w-4" />
+            }
             return <Shield className="h-4 w-4" />
         case 'QUEST':
             return <Target className="h-4 w-4" />
@@ -29,7 +38,7 @@ const getActivityIcon = (activityType: string) => {
 }
 
 // Helper function to get activity color
-const getActivityColor = (activityType: string, completed: boolean, error?: string) => {
+const getActivityColor = (activityType: string, completed: boolean, error?: string, activityName?: string) => {
     if (error) return 'text-red-500'
     if (completed) return 'text-green-500'
 
@@ -37,6 +46,14 @@ const getActivityColor = (activityType: string, completed: boolean, error?: stri
         case 'MYTHIC_PLUS':
             return 'text-purple-500'
         case 'RAID':
+            // Different colors for different raid difficulties
+            if (activityName?.includes('Normal')) {
+                return 'text-blue-500'
+            } else if (activityName?.includes('Heroic')) {
+                return 'text-purple-500'
+            } else if (activityName?.includes('Mythic')) {
+                return 'text-orange-600'
+            }
             return 'text-orange-500'
         case 'QUEST':
             return 'text-blue-500'
@@ -77,8 +94,8 @@ const DashboardPage: React.FC = () => {
     const [selectedRealm, setSelectedRealm] = useState('')
     const [minLevel, setMinLevel] = useState(1)
     const [maxLevel, setMaxLevel] = useState(80)
-    const [sortBy, setSortBy] = useState<'name' | 'level' | 'class' | 'progress'>('name')
-    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+    const [sortBy, setSortBy] = useState<'name' | 'level' | 'class' | 'progress'>('progress')
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
     const [showFilters, setShowFilters] = useState(false)
     const [expandedCharacter, setExpandedCharacter] = useState<number | null>(null)
 
@@ -175,8 +192,8 @@ const DashboardPage: React.FC = () => {
         setSelectedRealm('')
         setMinLevel(1)
         setMaxLevel(80)
-        setSortBy('name')
-        setSortOrder('asc')
+        setSortBy('progress')
+        setSortOrder('desc')
     }
 
     // Handle character card click
@@ -273,8 +290,8 @@ const DashboardPage: React.FC = () => {
             {/* Weekly Reset Status */}
             <ResetStatusComponent />
 
-            {/* Auto-Refresh System */}
-            <AutoRefreshComponent />
+            {/* Weekly Quests Summary */}
+            <WeeklyQuestsSummary />
 
             {/* Character Selection */}
             <div className="card">
@@ -621,8 +638,8 @@ const DashboardPage: React.FC = () => {
                                                                 {/* Enhanced Main Activity Row */}
                                                                 <div className="flex items-center justify-between p-3">
                                                                     <div className="flex items-center space-x-3">
-                                                                        <div className={`p-1 rounded-full ${getActivityColor(activity.type, activity.completed, activity.error)}`}>
-                                                                            {getActivityIcon(activity.type)}
+                                                                        <div className={`p-1 rounded-full ${getActivityColor(activity.type, activity.completed, activity.error, activity.name)}`}>
+                                                                            {getActivityIcon(activity.type, activity.name)}
                                                                         </div>
                                                                         <div>
                                                                             <span className="text-sm font-semibold text-gray-900">{activity.name}</span>
@@ -740,6 +757,9 @@ const DashboardPage: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            {/* Auto-Refresh System */}
+            <AutoRefreshComponent />
 
         </div>
     )
