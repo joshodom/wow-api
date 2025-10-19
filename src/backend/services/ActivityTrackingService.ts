@@ -146,7 +146,7 @@ export class ActivityTrackingService {
             if (instance.modes && instance.modes.length > 0) {
               for (const mode of instance.modes) {
                 // Check if this mode matches our difficulty and is completed
-                if (this.matchesRaidDifficulty(mode.difficulty, difficulty) && 
+                if (ActivityTrackingService.matchesRaidDifficulty(mode.difficulty, difficulty) && 
                     mode.status?.type === 'COMPLETE') {
                   
                   // Check if any encounters were completed this week
