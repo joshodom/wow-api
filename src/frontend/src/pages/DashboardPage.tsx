@@ -2,14 +2,13 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useCharacter } from '../contexts/CharacterContext'
-import { CheckCircle, XCircle, User, LogIn, Shield, Search, Filter, SortAsc, SortDesc, Zap, Target, Trophy, Star, Clock, TrendingUp, ChevronDown, ChevronRight, Sparkles, Activity } from 'lucide-react'
+import { CheckCircle, XCircle, User, LogIn, Shield, Search, Filter, SortAsc, SortDesc, Zap, Target, Trophy, Star, Clock, TrendingUp, ChevronDown, Sparkles, Activity } from 'lucide-react'
 import { notificationService } from '../services/NotificationService'
 import { getClassColor, getClassTextColor } from '../utils/classColors'
 import ResetStatusComponent from '../components/ResetStatusComponent'
 import AutoRefreshComponent from '../components/AutoRefreshComponent'
-import { LoadingSpinner, SkeletonCharacterCard, LoadingOverlay } from '../components/LoadingComponents'
-import { CharacterTooltip, InfoTooltip } from '../components/Tooltip'
-import { useNotificationHelpers } from '../components/NotificationSystem'
+import { LoadingSpinner, SkeletonCharacterCard } from '../components/LoadingComponents'
+import { CharacterTooltip } from '../components/Tooltip'
 
 // Helper function to get activity icon
 const getActivityIcon = (activityType: string) => {
@@ -399,7 +398,7 @@ const DashboardPage: React.FC = () => {
                         </div>
                         <h3 className="text-lg font-semibold text-gray-700 mb-2">No Characters Found</h3>
                         <p className="text-gray-500 mb-4">
-                            {characters.length === 0 
+                            {characters.length === 0
                                 ? "You don't have any characters yet. Try logging in to sync your characters."
                                 : "No characters match your current filters. Try adjusting your search criteria."
                             }
@@ -423,7 +422,7 @@ const DashboardPage: React.FC = () => {
                             return (
                                 <CharacterTooltip key={character.characterId} character={character}>
                                     <div
-                                        className={`character-card animate-fade-in-up ${hasErrors
+                                        className={`character-card group animate-fade-in-up ${hasErrors
                                             ? 'border-red-300 bg-red-50 hover:bg-red-100'
                                             : isSelected
                                                 ? 'border-blue-500 bg-blue-50 shadow-md hover:bg-blue-100'
@@ -431,269 +430,271 @@ const DashboardPage: React.FC = () => {
                                             }`}
                                         style={{ animationDelay: `${index * 100}ms` }}
                                     >
-                                    {/* Character Card Header */}
-                                    <div
-                                        className="p-4"
-                                        onClick={() => handleCharacterClick(character)}
-                                    >
-                                        <div className="space-y-3">
-                                        {/* Character Header */}
-                                        <div className="flex items-center space-x-4">
-                                            <div className="character-avatar relative">
-                                                <div
-                                                    className="w-16 h-16 rounded-full flex items-center justify-center font-bold text-xl border-2 border-black shadow-lg"
-                                                    style={{
-                                                        backgroundColor: classColor,
-                                                        color: getClassTextColor(character.className)
-                                                    }}
-                                                >
-                                                    {character.characterName.charAt(0).toUpperCase()}
-                                                </div>
-                                                {/* Level badge */}
-                                                <div className="absolute -bottom-1 -right-1 bg-gray-800 text-white text-xs font-bold px-2 py-1 rounded-full border-2 border-white">
-                                                    {character.level}
-                                                </div>
-                                            </div>
-                                            <div className="text-left flex-1">
-                                                <h3 className="font-bold text-gray-900 text-xl group-hover:text-blue-600 transition-colors">
-                                                    {character.characterName}
-                                                </h3>
-                                                <p className="text-sm text-gray-600 capitalize font-medium">{character.realm}</p>
-                                                <div className="flex items-center space-x-2 mt-1">
-                                                    <span className="text-xs px-2 py-1 rounded-full font-medium" style={{ 
-                                                        backgroundColor: classColor + '20', 
-                                                        color: classColor 
-                                                    }}>
-                                                        {character.className}
-                                                    </span>
-                                                    <span className="text-xs px-2 py-1 rounded-full font-medium bg-gray-100 text-gray-700">
-                                                        {character.race}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="flex flex-col items-center space-y-2">
-                                                <div className="flex items-center space-x-2">
-                                                    <Sparkles className="h-4 w-4 text-yellow-500" />
-                                                    <span className="text-sm font-bold text-gray-700">
-                                                        {character.activities.filter((a: any) => a.completed).length}/{character.activities.length}
-                                                    </span>
-                                                </div>
-                                                <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
-                                                    <ChevronDown className="w-5 h-5 text-gray-400" />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                            {/* Character Details */}
-                                            <div className="space-y-2">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center space-x-2">
-                                                        <Sword className="h-4 w-4 text-gray-500" />
-                                                        <span className="text-sm font-medium" style={{ color: getClassTextColor(character.className) }}>
-                                                            {character.className}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center space-x-2">
-                                                        <Shield className="h-4 w-4 text-gray-500" />
-                                                        <span className="text-sm text-gray-600">{character.race}</span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-sm text-gray-600">Level {character.level}</span>
-                                                    <span className={`text-xs px-2 py-1 rounded-full ${character.faction === 'ALLIANCE'
-                                                        ? 'bg-blue-100 text-blue-800'
-                                                        : 'bg-red-100 text-red-800'
-                                                        }`}>
-                                                        {character.faction}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            {/* Enhanced Progress Bar */}
-                                        <div className="pt-3 border-t border-gray-100">
-                                            <div className="flex items-center justify-between mb-3">
-                                                <div className="flex items-center space-x-2">
-                                                    <Activity className="h-4 w-4 text-blue-500" />
-                                                    <span className="text-sm font-semibold text-gray-700">Weekly Progress</span>
-                                                </div>
-                                                <div className="flex items-center space-x-2">
-                                                    <span className="text-sm font-bold text-gray-800">
-                                                        {character.activities.filter((a: any) => a.completed).length}/{character.activities.length}
-                                                    </span>
-                                                    <span className={`text-sm px-3 py-1 rounded-full font-bold ${getProgressStatus(getProgressPercentage(character)).color} text-white shadow-sm`}>
-                                                        {getProgressPercentage(character)}%
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="progress-bar h-4 relative overflow-hidden">
-                                                <div
-                                                    className={`progress-bar-fill ${getProgressStatus(getProgressPercentage(character)).color.replace('bg-', 'bg-gradient-to-r from-').replace('-500', '-400 to-').replace('-500', '-600')}`}
-                                                    style={{
-                                                        width: character.activities.length > 0
-                                                            ? `${(character.activities.filter((a: any) => a.completed).length / character.activities.length) * 100}%`
-                                                            : '0%'
-                                                    }}
-                                                >
-                                                    {/* Animated shimmer effect */}
-                                                    {getProgressPercentage(character) > 0 && (
-                                                        <div className="progress-bar-shimmer" />
-                                                    )}
-                                                </div>
-                                                {/* Progress percentage overlay */}
-                                                {getProgressPercentage(character) > 20 && (
-                                                    <div className="absolute inset-0 flex items-center justify-center">
-                                                        <span className="text-xs font-bold text-white drop-shadow-sm">
-                                                            {getProgressPercentage(character)}%
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            {/* Progress status */}
-                                            <div className="mt-2 text-center">
-                                                <span className={`text-sm font-semibold ${getProgressStatus(getProgressPercentage(character)).color.replace('bg-', 'text-')}`}>
-                                                    {getProgressStatus(getProgressPercentage(character)).text}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Enhanced Expandable Activity Details */}
-                                    {isExpanded && (
-                                        <div className="border-t border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 p-4 space-y-4">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <h4 className="font-semibold text-gray-900 text-sm flex items-center space-x-2">
-                                                    <TrendingUp className="h-4 w-4 text-blue-500" />
-                                                    <span>Weekly Activities</span>
-                                                </h4>
-                                                <div className="flex items-center space-x-2">
-                                                    <span className="text-xs text-gray-500">
-                                                        {character.activities.filter((a: any) => a.completed).length} of {character.activities.length} completed
-                                                    </span>
-                                                </div>
-                                            </div>
+                                        {/* Character Card Header */}
+                                        <div
+                                            className="p-4"
+                                            onClick={() => handleCharacterClick(character)}
+                                        >
                                             <div className="space-y-3">
-                                                {character.activities.map((activity: any, index: number) => (
-                                                    <div key={index} className={`bg-white rounded-lg border-2 transition-all duration-300 hover:shadow-md ${activity.completed ? 'border-green-200 bg-green-50' :
-                                                        activity.error ? 'border-red-200 bg-red-50' :
-                                                            'border-gray-200 hover:border-gray-300'
-                                                        }`}>
-                                                        {/* Enhanced Main Activity Row */}
-                                                        <div className="flex items-center justify-between p-3">
-                                                            <div className="flex items-center space-x-3">
-                                                                <div className={`p-1 rounded-full ${getActivityColor(activity.type, activity.completed, activity.error)}`}>
-                                                                    {getActivityIcon(activity.type)}
-                                                                </div>
-                                                                <div>
-                                                                    <span className="text-sm font-semibold text-gray-900">{activity.name}</span>
-                                                                    <div className="text-xs text-gray-500 mt-0.5">{activity.description}</div>
-                                                                </div>
-                                                            </div>
-                                                            <div className="flex items-center space-x-2">
-                                                                {/* Enhanced status indicator */}
-                                                                <div className={`flex items-center space-x-1 px-3 py-1 rounded-full font-medium text-xs ${activity.error
-                                                                    ? 'bg-red-100 text-red-800 border border-red-200'
-                                                                    : activity.completed
-                                                                        ? 'bg-green-100 text-green-800 border border-green-200 animate-pulse'
-                                                                        : 'bg-gray-100 text-gray-600 border border-gray-200'
-                                                                    }`}>
-                                                                    {activity.error ? (
-                                                                        <XCircle className="h-3 w-3" />
-                                                                    ) : activity.completed ? (
-                                                                        <CheckCircle className="h-3 w-3" />
-                                                                    ) : (
-                                                                        <Clock className="h-3 w-3" />
-                                                                    )}
-                                                                    <span>
-                                                                        {activity.error ? 'Error' : activity.completed ? 'Completed' : 'Incomplete'}
-                                                                    </span>
-                                                                </div>
-                                                            </div>
+                                                {/* Character Header */}
+                                                <div className="flex items-center space-x-4">
+                                                    <div className="character-avatar relative">
+                                                        <div
+                                                            className="w-16 h-16 rounded-full flex items-center justify-center font-bold text-xl border-2 border-black shadow-lg"
+                                                            style={{
+                                                                backgroundColor: classColor,
+                                                                color: getClassTextColor(character.className)
+                                                            }}
+                                                        >
+                                                            {character.characterName.charAt(0).toUpperCase()}
                                                         </div>
-
-                                                        {/* Enhanced Quest Details (if available) */}
-                                                        {activity.type === 'QUEST' && activity.questDetails && (
-                                                            <div className="px-3 pb-3 border-t border-gray-200 bg-gradient-to-r from-blue-50 to-green-50">
-                                                                <div className="mt-3">
-                                                                    <div className="flex items-center justify-between mb-2">
-                                                                        <div className="flex items-center space-x-2">
-                                                                            <Target className="h-3 w-3 text-blue-500" />
-                                                                            <span className="text-xs font-semibold text-gray-700">
-                                                                                {activity.questDetails.totalQuestsThisWeek} quest{activity.questDetails.totalQuestsThisWeek !== 1 ? 's' : ''} completed this week
-                                                                            </span>
-                                                                        </div>
-                                                                        <div className="flex items-center space-x-1">
-                                                                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                                                                            <span className="text-xs text-green-600 font-medium">Active</span>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="space-y-1 max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                                                                        {activity.questDetails.completedQuests.slice(0, 10).map((quest: any, questIndex: number) => (
-                                                                            <div key={questIndex} className="flex items-center justify-between text-xs bg-white rounded-lg px-3 py-2 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                                                                                <div className="flex items-center space-x-2 flex-1">
-                                                                                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                                                                                    <span className="text-gray-700 truncate font-medium">{quest.name}</span>
-                                                                                </div>
-                                                                                <div className="flex items-center space-x-1">
-                                                                                    <Clock className="h-3 w-3 text-gray-400" />
-                                                                                    <span className="text-gray-500 whitespace-nowrap font-medium">
-                                                                                        {quest.hoursAgo < 24
-                                                                                            ? `${quest.hoursAgo}h ago`
-                                                                                            : `${Math.floor(quest.hoursAgo / 24)}d ago`
-                                                                                        }
-                                                                                    </span>
-                                                                                </div>
-                                                                            </div>
-                                                                        ))}
-                                                                        {activity.questDetails.completedQuests.length > 10 && (
-                                                                            <div className="text-xs text-gray-500 text-center py-2 bg-gray-100 rounded-lg border border-gray-200">
-                                                                                <span className="font-medium">... and {activity.questDetails.completedQuests.length - 10} more quests</span>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        )}
+                                                        {/* Level badge */}
+                                                        <div className="absolute -bottom-1 -right-1 bg-gray-800 text-white text-xs font-bold px-2 py-1 rounded-full border-2 border-white">
+                                                            {character.level}
+                                                        </div>
                                                     </div>
-                                                ))}
-                                            </div>
-                                            {/* Enhanced Footer with Progress Summary */}
-                                            <div className="pt-3 border-t border-gray-300 bg-white rounded-lg p-3">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center space-x-2">
-                                                        <Clock className="h-3 w-3 text-gray-400" />
-                                                        <span className="text-xs text-gray-500">
-                                                            Last updated: {character.lastUpdated.toLocaleDateString()}
+                                                    <div className="text-left flex-1">
+                                                        <h3 className="font-bold text-gray-900 text-xl group-hover:text-blue-600 transition-colors">
+                                                            {character.characterName}
+                                                        </h3>
+                                                        <p className="text-sm text-gray-600 capitalize font-medium">{character.realm}</p>
+                                                        <div className="flex items-center space-x-2 mt-1">
+                                                            <span className="text-xs px-2 py-1 rounded-full font-medium" style={{
+                                                                backgroundColor: classColor + '20',
+                                                                color: classColor
+                                                            }}>
+                                                                {character.className}
+                                                            </span>
+                                                            <span className="text-xs px-2 py-1 rounded-full font-medium bg-gray-100 text-gray-700">
+                                                                {character.race}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex flex-col items-center space-y-2">
+                                                        <div className="flex items-center space-x-2">
+                                                            <Sparkles className="h-4 w-4 text-yellow-500" />
+                                                            <span className="text-sm font-bold text-gray-700">
+                                                                {character.activities.filter((a: any) => a.completed).length}/{character.activities.length}
+                                                            </span>
+                                                        </div>
+                                                        <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                                                            <ChevronDown className="w-5 h-5 text-gray-400" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Character Details */}
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center space-x-2">
+                                                            <Shield className="h-4 w-4 text-gray-500" />
+                                                            <span className="text-sm font-medium" style={{ color: getClassTextColor(character.className) }}>
+                                                                {character.className}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center space-x-2">
+                                                            <Shield className="h-4 w-4 text-gray-500" />
+                                                            <span className="text-sm text-gray-600">{character.race}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-sm text-gray-600">Level {character.level}</span>
+                                                        <span className={`text-xs px-2 py-1 rounded-full ${character.faction === 'ALLIANCE'
+                                                            ? 'bg-blue-100 text-blue-800'
+                                                            : 'bg-red-100 text-red-800'
+                                                            }`}>
+                                                            {character.faction}
                                                         </span>
                                                     </div>
-                                                    <div className="flex items-center space-x-3">
-                                                        <div className="flex items-center space-x-1">
-                                                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                                            <span className="text-xs font-medium text-green-600">
-                                                                {character.activities.filter((a: any) => a.completed).length} completed
+                                                </div>
+
+                                                {/* Enhanced Progress Bar */}
+                                                <div className="pt-3 border-t border-gray-100">
+                                                    <div className="flex items-center justify-between mb-3">
+                                                        <div className="flex items-center space-x-2">
+                                                            <Activity className="h-4 w-4 text-blue-500" />
+                                                            <span className="text-sm font-semibold text-gray-700">Weekly Progress</span>
+                                                        </div>
+                                                        <div className="flex items-center space-x-2">
+                                                            <span className="text-sm font-bold text-gray-800">
+                                                                {character.activities.filter((a: any) => a.completed).length}/{character.activities.length}
+                                                            </span>
+                                                            <span className={`text-sm px-3 py-1 rounded-full font-bold ${getProgressStatus(getProgressPercentage(character)).color} text-white shadow-sm`}>
+                                                                {getProgressPercentage(character)}%
                                                             </span>
                                                         </div>
-                                                        <div className="flex items-center space-x-1">
-                                                            <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                                                            <span className="text-xs font-medium text-gray-500">
-                                                                {character.activities.filter((a: any) => !a.completed && !a.error).length} pending
-                                                            </span>
+                                                    </div>
+                                                    <div className="progress-bar h-4 relative overflow-hidden">
+                                                        <div
+                                                            className={`progress-bar-fill ${getProgressStatus(getProgressPercentage(character)).color.replace('bg-', 'bg-gradient-to-r from-').replace('-500', '-400 to-').replace('-500', '-600')}`}
+                                                            style={{
+                                                                width: character.activities.length > 0
+                                                                    ? `${(character.activities.filter((a: any) => a.completed).length / character.activities.length) * 100}%`
+                                                                    : '0%'
+                                                            }}
+                                                        >
+                                                            {/* Animated shimmer effect */}
+                                                            {getProgressPercentage(character) > 0 && (
+                                                                <div className="progress-bar-shimmer" />
+                                                            )}
                                                         </div>
-                                                        {character.activities.some((a: any) => a.error) && (
-                                                            <div className="flex items-center space-x-1">
-                                                                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                                                                <span className="text-xs font-medium text-red-600">
-                                                                    {character.activities.filter((a: any) => a.error).length} error
+                                                        {/* Progress percentage overlay */}
+                                                        {getProgressPercentage(character) > 20 && (
+                                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                                <span className="text-xs font-bold text-white drop-shadow-sm">
+                                                                    {getProgressPercentage(character)}%
                                                                 </span>
                                                             </div>
                                                         )}
                                                     </div>
+                                                    {/* Progress status */}
+                                                    <div className="mt-2 text-center">
+                                                        <span className={`text-sm font-semibold ${getProgressStatus(getProgressPercentage(character)).color.replace('bg-', 'text-')}`}>
+                                                            {getProgressStatus(getProgressPercentage(character)).text}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
+
+                                            {/* Enhanced Expandable Activity Details */}
+                                            {isExpanded && (
+                                                <div className="border-t border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 p-4 space-y-4">
+                                                    <div className="flex items-center justify-between mb-4">
+                                                        <h4 className="font-semibold text-gray-900 text-sm flex items-center space-x-2">
+                                                            <TrendingUp className="h-4 w-4 text-blue-500" />
+                                                            <span>Weekly Activities</span>
+                                                        </h4>
+                                                        <div className="flex items-center space-x-2">
+                                                            <span className="text-xs text-gray-500">
+                                                                {character.activities.filter((a: any) => a.completed).length} of {character.activities.length} completed
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-3">
+                                                        {character.activities.map((activity: any, index: number) => (
+                                                            <div key={index} className={`bg-white rounded-lg border-2 transition-all duration-300 hover:shadow-md ${activity.completed ? 'border-green-200 bg-green-50' :
+                                                                activity.error ? 'border-red-200 bg-red-50' :
+                                                                    'border-gray-200 hover:border-gray-300'
+                                                                }`}>
+                                                                {/* Enhanced Main Activity Row */}
+                                                                <div className="flex items-center justify-between p-3">
+                                                                    <div className="flex items-center space-x-3">
+                                                                        <div className={`p-1 rounded-full ${getActivityColor(activity.type, activity.completed, activity.error)}`}>
+                                                                            {getActivityIcon(activity.type)}
+                                                                        </div>
+                                                                        <div>
+                                                                            <span className="text-sm font-semibold text-gray-900">{activity.name}</span>
+                                                                            <div className="text-xs text-gray-500 mt-0.5">{activity.description}</div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex items-center space-x-2">
+                                                                        {/* Enhanced status indicator */}
+                                                                        <div className={`flex items-center space-x-1 px-3 py-1 rounded-full font-medium text-xs ${activity.error
+                                                                            ? 'bg-red-100 text-red-800 border border-red-200'
+                                                                            : activity.completed
+                                                                                ? 'bg-green-100 text-green-800 border border-green-200 animate-pulse'
+                                                                                : 'bg-gray-100 text-gray-600 border border-gray-200'
+                                                                            }`}>
+                                                                            {activity.error ? (
+                                                                                <XCircle className="h-3 w-3" />
+                                                                            ) : activity.completed ? (
+                                                                                <CheckCircle className="h-3 w-3" />
+                                                                            ) : (
+                                                                                <Clock className="h-3 w-3" />
+                                                                            )}
+                                                                            <span>
+                                                                                {activity.error ? 'Error' : activity.completed ? 'Completed' : 'Incomplete'}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Enhanced Quest Details (if available) */}
+                                                                {activity.type === 'QUEST' && activity.questDetails && (
+                                                                    <div className="px-3 pb-3 border-t border-gray-200 bg-gradient-to-r from-blue-50 to-green-50">
+                                                                        <div className="mt-3">
+                                                                            <div className="flex items-center justify-between mb-2">
+                                                                                <div className="flex items-center space-x-2">
+                                                                                    <Target className="h-3 w-3 text-blue-500" />
+                                                                                    <span className="text-xs font-semibold text-gray-700">
+                                                                                        {activity.questDetails.totalQuestsThisWeek} quest{activity.questDetails.totalQuestsThisWeek !== 1 ? 's' : ''} completed this week
+                                                                                    </span>
+                                                                                </div>
+                                                                                <div className="flex items-center space-x-1">
+                                                                                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                                                                    <span className="text-xs text-green-600 font-medium">Active</span>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="space-y-1 max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                                                                                {activity.questDetails.completedQuests.slice(0, 10).map((quest: any, questIndex: number) => (
+                                                                                    <div key={questIndex} className="flex items-center justify-between text-xs bg-white rounded-lg px-3 py-2 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                                                                                        <div className="flex items-center space-x-2 flex-1">
+                                                                                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                                                                                            <span className="text-gray-700 truncate font-medium">{quest.name}</span>
+                                                                                        </div>
+                                                                                        <div className="flex items-center space-x-1">
+                                                                                            <Clock className="h-3 w-3 text-gray-400" />
+                                                                                            <span className="text-gray-500 whitespace-nowrap font-medium">
+                                                                                                {quest.hoursAgo < 24
+                                                                                                    ? `${quest.hoursAgo}h ago`
+                                                                                                    : `${Math.floor(quest.hoursAgo / 24)}d ago`
+                                                                                                }
+                                                                                            </span>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ))}
+                                                                                {activity.questDetails.completedQuests.length > 10 && (
+                                                                                    <div className="text-xs text-gray-500 text-center py-2 bg-gray-100 rounded-lg border border-gray-200">
+                                                                                        <span className="font-medium">... and {activity.questDetails.completedQuests.length - 10} more quests</span>
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                    {/* Enhanced Footer with Progress Summary */}
+                                                    <div className="pt-3 border-t border-gray-300 bg-white rounded-lg p-3">
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center space-x-2">
+                                                                <Clock className="h-3 w-3 text-gray-400" />
+                                                                <span className="text-xs text-gray-500">
+                                                                    Last updated: {character.lastUpdated.toLocaleDateString()}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex items-center space-x-3">
+                                                                <div className="flex items-center space-x-1">
+                                                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                                                    <span className="text-xs font-medium text-green-600">
+                                                                        {character.activities.filter((a: any) => a.completed).length} completed
+                                                                    </span>
+                                                                </div>
+                                                                <div className="flex items-center space-x-1">
+                                                                    <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                                                                    <span className="text-xs font-medium text-gray-500">
+                                                                        {character.activities.filter((a: any) => !a.completed && !a.error).length} pending
+                                                                    </span>
+                                                                </div>
+                                                                {character.activities.some((a: any) => a.error) && (
+                                                                    <div className="flex items-center space-x-1">
+                                                                        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                                                                        <span className="text-xs font-medium text-red-600">
+                                                                            {character.activities.filter((a: any) => a.error).length} error
+                                                                        </span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
-                            </CharacterTooltip>
+                                    </div>
+                                </CharacterTooltip>
+                            )
                         })}
                     </div>
                 )}

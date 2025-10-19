@@ -263,7 +263,7 @@
 
 /* Character card enhancements */
 .character-card {
-    @apply card-enhanced p-6 cursor-pointer group;
+    @apply card-enhanced p-6 cursor-pointer;
 }
 
 .character-card:hover .character-avatar {
