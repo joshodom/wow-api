@@ -380,15 +380,30 @@ export class ActivityTrackingService {
 
       // Special handling for Headless Horseman - check raid encounters
       if (seasonalEventId === 'hallows_end') {
+        console.log('🔍 Checking for Headless Horseman encounter...');
+        
+        // Debug: Log the entire raids structure for one character to see what we're working with
+        if (activityData.raids) {
+          console.log('📊 Raids data structure:', JSON.stringify(activityData.raids, null, 2).substring(0, 500));
+        }
+        
         // Check raid encounters for Headless Horseman
         if (activityData.raids && activityData.raids.expansions) {
+          console.log(`Found ${activityData.raids.expansions.length} expansions to check`);
+          
           for (const expansion of activityData.raids.expansions) {
             if (expansion.instances) {
+              console.log(`Checking ${expansion.instances.length} instances in expansion`);
+              
               for (const instance of expansion.instances) {
-                const instanceNameLower = (instance.instance?.name || '').toLowerCase();
+                const instanceName = instance.instance?.name || '';
+                const instanceNameLower = instanceName.toLowerCase();
+                console.log(`  Instance: ${instanceName}`);
                 
                 // Look for Headless Horseman instance
                 if (instanceNameLower.includes('headless') || instanceNameLower.includes('horseman')) {
+                  console.log(`🎃 Found Headless Horseman instance!`);
+                  
                   // Check if any mode/difficulty was completed today
                   if (instance.modes) {
                     for (const mode of instance.modes) {
@@ -397,8 +412,10 @@ export class ActivityTrackingService {
                         if (mode.progress.encounters) {
                           for (const encounter of mode.progress.encounters) {
                             const lastKillTimestamp = encounter.last_kill_timestamp || 0;
+                            console.log(`    Last kill timestamp: ${lastKillTimestamp}, Today: ${todayTimestamp}`);
+                            
                             if (lastKillTimestamp >= todayTimestamp) {
-                              console.log(`✅ Found ${seasonalEvent.name} encounter completed today: ${instance.instance.name}`);
+                              console.log(`✅ Found ${seasonalEvent.name} encounter completed today: ${instanceName}`);
                               return true;
                             }
                           }
@@ -410,6 +427,8 @@ export class ActivityTrackingService {
               }
             }
           }
+        } else {
+          console.log('⚠️ No raids.expansions data found');
         }
       }
 
