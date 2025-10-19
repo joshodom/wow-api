@@ -71,89 +71,35 @@ export const LOG_LEVELS = {
   DEBUG: 'debug'
 } as const;
 
-// Weekly Quest Definitions
-export const WEEKLY_QUESTS = {
-  // The War Within - Always Available
+// Tracked Weekly Activities (The 3 main weekly quests)
+export const TRACKED_WEEKLY_QUESTS = {
   WORLD_SOUL: {
     id: 'world_soul',
     name: 'The Call of the World Soul',
     zone: 'Dornogal',
     objectives: [
-      'Complete one of four available tasks',
+      'Complete one of four available tasks (Awakening the Machine, Spreading the Light, Theater Troupe, or Special Assignment)',
       'Earn a cache with crests, valorstones, and gear'
-    ],
-    category: 'WEEKLY_STATIC' as const
-  },
-  SPECIAL_ASSIGNMENT: {
-    id: 'special_assignment',
-    name: 'Special Assignment',
-    zone: 'Any Zone',
-    objectives: [
-      'Complete 3 World Quests in a zone',
-      'Complete the unlocked Special Assignment'
-    ],
-    category: 'WEEKLY_STATIC' as const
-  },
-  AWAKENING_MACHINE: {
-    id: 'awakening_machine',
-    name: 'Awakening the Machine',
-    zone: 'Gundargaz, Isle of Dorn',
-    objectives: [
-      'Survive 20 waves of enemies',
-      'Earn Awakened Mechanical Cache',
-      'Chance at Machine Defense Unit 1-11 mount'
-    ],
-    category: 'WEEKLY_STATIC' as const
-  },
-  SPREADING_LIGHT: {
-    id: 'spreading_light',
-    name: 'Spreading the Light',
-    zone: 'Hallowfall',
-    objectives: [
-      'Collect Radiant Remnants',
-      'Light Lesser Keyflames',
-      'Earn Radiant Cache with crests and resources'
-    ],
-    category: 'WEEKLY_STATIC' as const
-  },
-  THEATER_TROUPE: {
-    id: 'theater_troupe',
-    name: 'Theater Troupe',
-    zone: 'Isle of Dorn',
-    objectives: [
-      'Participate in performance events',
-      'Complete tasks and final boss fight',
-      'Earn Theater Troupe\'s Trove with gear and reputation'
-    ],
-    category: 'WEEKLY_STATIC' as const
-  },
-  DUNGEON_WEEKLY: {
-    id: 'dungeon_weekly',
-    name: 'Weekly Dungeon Quest',
-    zone: 'Dornogal',
-    objectives: [
-      'Complete the specified dungeon',
-      'Earn 1,500 reputation with chosen faction'
-    ],
-    category: 'WEEKLY_STATIC' as const
-  },
-  PVP_WEEKLY: {
-    id: 'pvp_weekly',
-    name: 'Weekly PvP Quest',
-    zone: 'Dornogal',
-    objectives: [
-      'Complete PvP objectives',
-      'Earn Honor and reputation'
     ],
     category: 'WEEKLY_STATIC' as const
   },
   DELVES_WEEKLY: {
     id: 'delves_weekly',
-    name: 'Delves Weekly',
+    name: 'Delve Deeper',
     zone: 'Khaz Algar',
     objectives: [
-      'Complete 4 Bountiful Delves',
-      'Earn rewards and reputation'
+      'Complete 4 Bountiful Delves (Tier 8+)',
+      'Earn Carved Harbinger Crests and gear'
+    ],
+    category: 'WEEKLY_STATIC' as const
+  },
+  DISC_COLLECTION: {
+    id: 'disc_collection',
+    name: 'Archives: The First Disc',
+    zone: 'Multiple Zones',
+    objectives: [
+      'Collect archive discs from dungeons, raids, delves, and world content',
+      'Turn in discs to Archivist for tokens and reputation'
     ],
     category: 'WEEKLY_STATIC' as const
   }
