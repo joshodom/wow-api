@@ -76,6 +76,35 @@ export class ActivityTrackingService {
   /**
    * Check if Mythic+ weekly activity is completed
    */
+  /**
+   * Extract Mythic+ rating/score from mythic plus data
+   */
+  static getMythicPlusScore(mythicPlusData: any): number {
+    if (!mythicPlusData) return 0;
+    
+    try {
+      // Try current_mythic_rating first (most recent)
+      if (mythicPlusData.current_mythic_rating && mythicPlusData.current_mythic_rating.rating) {
+        return Math.round(mythicPlusData.current_mythic_rating.rating);
+      }
+      
+      // Fall back to mythic_rating
+      if (mythicPlusData.mythic_rating && mythicPlusData.mythic_rating.rating) {
+        return Math.round(mythicPlusData.mythic_rating.rating);
+      }
+      
+      // Fall back to rating field
+      if (mythicPlusData.rating) {
+        return Math.round(mythicPlusData.rating);
+      }
+      
+      return 0;
+    } catch (error) {
+      console.error('Error extracting M+ score:', error);
+      return 0;
+    }
+  }
+
   private static checkMythicPlusCompletion(mythicPlusData: any): { completed: boolean; keyLevel?: number } {
     if (!mythicPlusData) return { completed: false };
 

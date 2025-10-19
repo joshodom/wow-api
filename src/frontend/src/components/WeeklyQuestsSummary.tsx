@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
-import { Target, ChevronDown, ChevronUp, Trophy, Sparkles, Mountain, Disc } from 'lucide-react'
-import { TRACKED_WEEKLY_QUESTS, BONUS_EVENTS, BONUS_EVENT_REFERENCE_DATE } from '../../../shared/constants'
+import { Target, ChevronDown, ChevronUp, Trophy, Sparkles, Mountain, Disc, Calendar } from 'lucide-react'
+import { TRACKED_WEEKLY_QUESTS, BONUS_EVENTS, BONUS_EVENT_REFERENCE_DATE, SEASONAL_EVENTS } from '../../../shared/constants'
 
 const WeeklyQuestsSummary: React.FC = () => {
     const [expanded, setExpanded] = React.useState(true)
@@ -15,6 +15,16 @@ const WeeklyQuestsSummary: React.FC = () => {
         // Find the bonus event for this week
         const event = Object.values(BONUS_EVENTS).find(e => e.week === currentWeek)
         return event || BONUS_EVENTS.BATTLEGROUNDS
+    }, [])
+
+    // Calculate which seasonal events are currently active
+    const activeSeasonalEvents = useMemo(() => {
+        const now = new Date()
+        return Object.values(SEASONAL_EVENTS).filter(event => {
+            const startDate = new Date(event.startDate)
+            const endDate = new Date(event.endDate)
+            return now >= startDate && now <= endDate
+        })
     }, [])
 
     // Helper to get icon for quest type
@@ -76,6 +86,44 @@ const WeeklyQuestsSummary: React.FC = () => {
                     ))}
                 </ul>
             </div>
+
+            {/* Active Seasonal Events */}
+            {activeSeasonalEvents.length > 0 && (
+                <div className="mb-4 space-y-3">
+                    {activeSeasonalEvents.map((event) => {
+                        const endDate = new Date(event.endDate)
+                        const daysRemaining = Math.ceil((endDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+                        
+                        return (
+                            <div key={event.id} className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg p-4 border-2 border-orange-300">
+                                <div className="flex items-center space-x-3 mb-3">
+                                    <div className="p-2 bg-orange-200 rounded-lg">
+                                        <Calendar className="h-5 w-5 text-orange-700" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xl">{event.icon}</span>
+                                            <h3 className="font-semibold text-orange-900">{event.name}</h3>
+                                            <span className="px-2 py-0.5 bg-orange-200 text-orange-800 text-xs font-medium rounded-full">
+                                                {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-orange-600 mt-0.5">Seasonal event - Limited time!</p>
+                                    </div>
+                                </div>
+                                <ul className="space-y-1.5">
+                                    {event.objectives.map((objective, index) => (
+                                        <li key={index} className="text-sm text-orange-800 flex items-start">
+                                            <span className="text-orange-400 mr-2 flex-shrink-0">•</span>
+                                            <span>{objective}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )
+                    })}
+                </div>
+            )}
 
             {/* Tracked Weekly Quests */}
             {expanded && (

@@ -136,11 +136,11 @@ export const BONUS_EVENTS = {
   },
   TIMEWALKING: {
     id: 'timewalking',
-    name: 'Timewalking Bonus Event',
+    name: 'A Shattered Path Through Time (WoD Timewalking)',
     objectives: [
-      'Complete 5 Timewalking Dungeons',
-      'Complete Timewalking Raid (when available)',
-      'Earn Timewalking Badges and gear'
+      'Complete 5 Warlords of Draenor Timewalking Dungeons',
+      'Purchase gear with Timewarped Badges',
+      'Earn bonus rewards and reputation'
     ],
     week: 4
   },
@@ -173,6 +173,51 @@ export const BONUS_EVENTS = {
   }
 } as const;
 
-// Reference date for rotation calculation (a known Week 1 date)
-// This should be a Tuesday (weekly reset day) that was a Battlegrounds week
-export const BONUS_EVENT_REFERENCE_DATE = new Date('2024-01-02T15:00:00Z'); // Example reference date
+// Reference date for rotation calculation (a known Week 4 - Timewalking date)
+// October 15, 2024 was a Tuesday with WoD Timewalking
+export const BONUS_EVENT_REFERENCE_DATE = new Date('2024-10-15T15:00:00Z'); // WoD Timewalking week
+
+// Seasonal Events (with date ranges)
+export const SEASONAL_EVENTS = {
+  HALLOWS_END: {
+    id: 'hallows_end',
+    name: 'Hallow\'s End',
+    startDate: '2024-10-18',
+    endDate: '2024-11-01',
+    objectives: [
+      'Defeat the Headless Horseman daily',
+      'Collect Tricky Treats from candy buckets',
+      'Complete "A Time to Lose Yourself" daily quest',
+      'Earn Hallow\'s End achievements and rewards'
+    ],
+    icon: '🎃' as const,
+    active: true
+  },
+  PILGRIMS_BOUNTY: {
+    id: 'pilgrims_bounty',
+    name: 'Pilgrim\'s Bounty',
+    startDate: '2024-11-18',
+    endDate: '2024-11-25',
+    objectives: [
+      'Share a feast at each capital city',
+      'Complete daily cooking quests',
+      'Earn Pilgrim achievements'
+    ],
+    icon: '🦃' as const,
+    active: false
+  },
+  FEAST_OF_WINTER_VEIL: {
+    id: 'winter_veil',
+    name: 'Feast of Winter Veil',
+    startDate: '2024-12-16',
+    endDate: '2025-01-02',
+    objectives: [
+      'Complete daily quests for Smokywood Pastures',
+      'Collect gifts under the Winter Veil tree',
+      'Save Metzen the Reindeer',
+      'Defeat the Greench'
+    ],
+    icon: '🎄' as const,
+    active: false
+  }
+} as const;

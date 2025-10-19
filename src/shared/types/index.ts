@@ -74,6 +74,7 @@ export interface CharacterProgress {
   className: string;
   level: number;
   faction: string;
+  mythicPlusScore?: number;
   activities: WeeklyActivity[];
   lastUpdated: Date;
 }

@@ -130,10 +130,17 @@ class WoWWeeklyTrackerServer {
               activityData
             );
             
+            // Extract Mythic+ score
+            const mythicPlusScore = ActivityTrackingService.getMythicPlusScore(activityData.mythicPlus);
+            
             console.log(`✅ Found ${weeklyActivities.filter(a => a.completed).length}/${weeklyActivities.length} completed activities for ${character.name}`);
+            if (mythicPlusScore > 0) {
+              console.log(`🏆 Mythic+ Score: ${mythicPlusScore}`);
+            }
             
             // Store activity data in character object (we'll save this to database later)
             (character as any).weeklyActivities = weeklyActivities;
+            (character as any).mythicPlusScore = mythicPlusScore;
           } catch (error) {
             console.error(`❌ Failed to fetch activities for ${character.name}:`, error);
             // Continue with other characters even if one fails
@@ -165,6 +172,7 @@ class WoWWeeklyTrackerServer {
               className: character.playable_class.name.en_US,
               level: character.level,
               faction: character.faction.type,
+              mythicPlusScore: (character as any).mythicPlusScore || 0,
               activities: (character as any).weeklyActivities,
               lastUpdated: new Date()
             };

@@ -535,6 +535,14 @@ const DashboardPage: React.FC = () => {
                                                                 {character.activities.filter((a: any) => a.completed).length}/{character.activities.length}
                                                             </span>
                                                         </div>
+                                                        {character.mythicPlusScore > 0 && (
+                                                            <div className="flex items-center space-x-1 bg-purple-100 px-2 py-1 rounded-full">
+                                                                <Zap className="h-3 w-3 text-purple-600" />
+                                                                <span className="text-xs font-bold text-purple-700">
+                                                                    {character.mythicPlusScore}
+                                                                </span>
+                                                            </div>
+                                                        )}
                                                         <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
                                                             <ChevronDown className="w-5 h-5 text-gray-400" />
                                                         </div>
