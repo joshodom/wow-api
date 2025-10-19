@@ -47,14 +47,16 @@ export interface BlizzardCharacter {
 export interface WeeklyActivity {
   id: string;
   name: string;
-  type: 'MYTHIC_PLUS' | 'RAID' | 'QUEST' | 'PROFESSION' | 'ACHIEVEMENT';
+  type: 'MYTHIC_PLUS' | 'RAID' | 'QUEST' | 'PROFESSION' | 'ACHIEVEMENT' | 'SEASONAL';
   description: string;
   completed: boolean;
   completedAt?: Date;
   progress?: number;
   maxProgress?: number;
-  resetDay: 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY' | 'MONDAY';
+  resetDay: 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY' | 'MONDAY' | 'DAILY';
   error?: string;
+  seasonal?: boolean;
+  seasonalEventId?: string;
   // Quest-specific details
   questDetails?: {
     completedQuests: Array<{

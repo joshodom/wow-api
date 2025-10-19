@@ -28,6 +28,9 @@ const getActivityIcon = (activityType: string, activityName?: string) => {
             return <Shield className="h-4 w-4" />
         case 'QUEST':
             return <Target className="h-4 w-4" />
+        case 'SEASONAL':
+            // Seasonal events - use special icon
+            return <span className="text-lg">🎃</span>
         case 'ACHIEVEMENT':
             return <Trophy className="h-4 w-4" />
         case 'PROFESSION':
@@ -57,6 +60,8 @@ const getActivityColor = (activityType: string, completed: boolean, error?: stri
             return 'text-orange-500'
         case 'QUEST':
             return 'text-blue-500'
+        case 'SEASONAL':
+            return 'text-orange-500'
         case 'ACHIEVEMENT':
             return 'text-yellow-500'
         case 'PROFESSION':

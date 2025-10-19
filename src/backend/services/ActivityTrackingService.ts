@@ -1,5 +1,5 @@
 import { WeeklyActivity } from '../../shared/types';
-import { WEEKLY_ACTIVITIES } from '../../shared/constants';
+import { WEEKLY_ACTIVITIES, SEASONAL_EVENTS } from '../../shared/constants';
 
 export interface ActivityData {
   mythicPlus?: any;
@@ -31,7 +31,9 @@ export class ActivityTrackingService {
         completed: false,
         progress: 0,
         maxProgress: 1,
-        resetDay: activityTemplate.resetDay
+        resetDay: activityTemplate.resetDay,
+        seasonal: (activityTemplate as any).seasonal,
+        seasonalEventId: (activityTemplate as any).seasonalEventId
       };
 
       // Determine completion based on activity type and check for errors
@@ -63,6 +65,16 @@ export class ActivityTrackingService {
             if (questResult.questDetails) {
               activity.questDetails = questResult.questDetails;
             }
+          }
+          break;
+        case 'SEASONAL':
+          if (activityData.errors?.quests) {
+            activity.error = activityData.errors.quests;
+          } else {
+            activity.completed = this.checkSeasonalQuestCompletion(
+              activityData.quests, 
+              (activityTemplate as any).seasonalEventId
+            );
           }
           break;
       }
@@ -348,6 +360,54 @@ export class ActivityTrackingService {
   static shouldResetActivities(lastReset: Date): boolean {
     const currentWeekStart = this.getCurrentWeekStart();
     return lastReset < currentWeekStart;
+  }
+
+  /**
+   * Check if seasonal quest (like Headless Horseman) has been completed today
+   */
+  static checkSeasonalQuestCompletion(questsData: any, seasonalEventId: string): boolean {
+    if (!questsData || !seasonalEventId) return false;
+
+    try {
+      const seasonalEvent = SEASONAL_EVENTS[seasonalEventId.toUpperCase() as keyof typeof SEASONAL_EVENTS];
+      if (!seasonalEvent || !(seasonalEvent as any).dailyQuests) return false;
+
+      const dailyQuests = (seasonalEvent as any).dailyQuests;
+      const completedQuests = questsData.quests || [];
+      
+      // Get the start of today (00:00:00 local time)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayTimestamp = today.getTime();
+
+      // Check if any of the seasonal daily quests were completed today
+      for (const questDef of dailyQuests) {
+        const searchTerms = questDef.searchTerms || [];
+        
+        for (const quest of completedQuests) {
+          // Check if quest name matches any search term
+          const questNameLower = (quest.quest?.name || quest.name || '').toLowerCase();
+          const matchesSearchTerm = searchTerms.some((term: string) => 
+            questNameLower.includes(term.toLowerCase())
+          );
+
+          if (matchesSearchTerm) {
+            // Check if completed today (within last 24 hours or after today's start)
+            const completedTimestamp = quest.completed_timestamp || 0;
+            if (completedTimestamp >= todayTimestamp) {
+              console.log(`✅ Found ${seasonalEvent.name} quest completed today: ${questNameLower}`);
+              return true;
+            }
+          }
+        }
+      }
+
+      console.log(`❌ No ${seasonalEvent.name} quests completed today`);
+      return false;
+    } catch (error) {
+      console.error('Error checking seasonal quest completion:', error);
+      return false;
+    }
   }
 }
 

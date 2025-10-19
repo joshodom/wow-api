@@ -51,6 +51,15 @@ export const WEEKLY_ACTIVITIES = {
     type: 'QUEST' as const,
     description: 'Complete weekly world quest',
     resetDay: 'TUESDAY' as const
+  },
+  HEADLESS_HORSEMAN: {
+    id: 'headless_horseman_daily',
+    name: 'Headless Horseman',
+    type: 'SEASONAL' as const,
+    description: 'Defeat the Headless Horseman (Daily)',
+    resetDay: 'DAILY' as const,
+    seasonal: true,
+    seasonalEventId: 'hallows_end'
   }
 } as const;
 
@@ -191,7 +200,11 @@ export const SEASONAL_EVENTS = {
       'Earn Hallow\'s End achievements and rewards'
     ],
     icon: '🎃' as const,
-    active: true
+    active: true,
+    dailyQuests: [
+      { name: 'The Headless Horseman', searchTerms: ['headless', 'horseman'] },
+      { name: 'Rotten Eggs From Rotten Kegs', searchTerms: ['rotten', 'eggs', 'kegs'] }
+    ]
   },
   PILGRIMS_BOUNTY: {
     id: 'pilgrims_bounty',
