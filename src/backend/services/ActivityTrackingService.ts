@@ -68,11 +68,12 @@ export class ActivityTrackingService {
           }
           break;
         case 'SEASONAL':
-          if (activityData.errors?.quests) {
+          // Check both quests and raids for seasonal activities
+          if (activityData.errors?.quests && activityData.errors?.raids) {
             activity.error = activityData.errors.quests;
           } else {
-            activity.completed = this.checkSeasonalQuestCompletion(
-              activityData.quests, 
+            activity.completed = this.checkSeasonalActivityCompletion(
+              activityData,
               (activityTemplate as any).seasonalEventId
             );
           }
@@ -363,49 +364,84 @@ export class ActivityTrackingService {
   }
 
   /**
-   * Check if seasonal quest (like Headless Horseman) has been completed today
+   * Check if seasonal activity (like Headless Horseman) has been completed today
    */
-  static checkSeasonalQuestCompletion(questsData: any, seasonalEventId: string): boolean {
-    if (!questsData || !seasonalEventId) return false;
+  static checkSeasonalActivityCompletion(activityData: ActivityData, seasonalEventId: string): boolean {
+    if (!seasonalEventId) return false;
 
     try {
       const seasonalEvent = SEASONAL_EVENTS[seasonalEventId.toUpperCase() as keyof typeof SEASONAL_EVENTS];
-      if (!seasonalEvent || !(seasonalEvent as any).dailyQuests) return false;
+      if (!seasonalEvent) return false;
 
-      const dailyQuests = (seasonalEvent as any).dailyQuests;
-      const completedQuests = questsData.quests || [];
-      
       // Get the start of today (00:00:00 local time)
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const todayTimestamp = today.getTime();
 
-      // Check if any of the seasonal daily quests were completed today
-      for (const questDef of dailyQuests) {
-        const searchTerms = questDef.searchTerms || [];
-        
-        for (const quest of completedQuests) {
-          // Check if quest name matches any search term
-          const questNameLower = (quest.quest?.name || quest.name || '').toLowerCase();
-          const matchesSearchTerm = searchTerms.some((term: string) => 
-            questNameLower.includes(term.toLowerCase())
-          );
-
-          if (matchesSearchTerm) {
-            // Check if completed today (within last 24 hours or after today's start)
-            const completedTimestamp = quest.completed_timestamp || 0;
-            if (completedTimestamp >= todayTimestamp) {
-              console.log(`✅ Found ${seasonalEvent.name} quest completed today: ${questNameLower}`);
-              return true;
+      // Special handling for Headless Horseman - check raid encounters
+      if (seasonalEventId === 'hallows_end') {
+        // Check raid encounters for Headless Horseman
+        if (activityData.raids && activityData.raids.expansions) {
+          for (const expansion of activityData.raids.expansions) {
+            if (expansion.instances) {
+              for (const instance of expansion.instances) {
+                const instanceNameLower = (instance.instance?.name || '').toLowerCase();
+                
+                // Look for Headless Horseman instance
+                if (instanceNameLower.includes('headless') || instanceNameLower.includes('horseman')) {
+                  // Check if any mode/difficulty was completed today
+                  if (instance.modes) {
+                    for (const mode of instance.modes) {
+                      if (mode.progress && mode.progress.completed_count > 0) {
+                        // Check encounters for completion timestamp
+                        if (mode.progress.encounters) {
+                          for (const encounter of mode.progress.encounters) {
+                            const lastKillTimestamp = encounter.last_kill_timestamp || 0;
+                            if (lastKillTimestamp >= todayTimestamp) {
+                              console.log(`✅ Found ${seasonalEvent.name} encounter completed today: ${instance.instance.name}`);
+                              return true;
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
       }
 
-      console.log(`❌ No ${seasonalEvent.name} quests completed today`);
+      // Also check quest data if available (for quest-based seasonal activities)
+      if ((seasonalEvent as any).dailyQuests && activityData.quests) {
+        const dailyQuests = (seasonalEvent as any).dailyQuests;
+        const completedQuests = activityData.quests.quests || [];
+
+        for (const questDef of dailyQuests) {
+          const searchTerms = questDef.searchTerms || [];
+          
+          for (const quest of completedQuests) {
+            const questNameLower = (quest.quest?.name || quest.name || '').toLowerCase();
+            const matchesSearchTerm = searchTerms.some((term: string) => 
+              questNameLower.includes(term.toLowerCase())
+            );
+
+            if (matchesSearchTerm) {
+              const completedTimestamp = quest.completed_timestamp || 0;
+              if (completedTimestamp >= todayTimestamp) {
+                console.log(`✅ Found ${seasonalEvent.name} quest completed today: ${questNameLower}`);
+                return true;
+              }
+            }
+          }
+        }
+      }
+
+      console.log(`❌ No ${seasonalEvent.name} activities completed today`);
       return false;
     } catch (error) {
-      console.error('Error checking seasonal quest completion:', error);
+      console.error('Error checking seasonal activity completion:', error);
       return false;
     }
   }
