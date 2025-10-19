@@ -40,7 +40,11 @@ export class ActivityTrackingService {
           if (activityData.errors?.mythicPlus) {
             activity.error = activityData.errors.mythicPlus;
           } else {
-            activity.completed = this.checkMythicPlusCompletion(activityData.mythicPlus);
+            const mythicResult = this.checkMythicPlusCompletion(activityData.mythicPlus);
+            activity.completed = mythicResult.completed;
+            if (mythicResult.keyLevel) {
+              activity.description = `Completed a Mythic+ ${mythicResult.keyLevel} dungeon`;
+            }
           }
           break;
         case 'RAID':
@@ -72,13 +76,13 @@ export class ActivityTrackingService {
   /**
    * Check if Mythic+ weekly activity is completed
    */
-  private static checkMythicPlusCompletion(mythicPlusData: any): boolean {
-    if (!mythicPlusData) return false;
+  private static checkMythicPlusCompletion(mythicPlusData: any): { completed: boolean; keyLevel?: number } {
+    if (!mythicPlusData) return { completed: false };
 
     try {
       // Check if character has completed any Mythic+ runs this week
       const currentPeriod = mythicPlusData.current_period;
-      if (!currentPeriod) return false;
+      if (!currentPeriod) return { completed: false };
 
       // Check if there are any completed runs in the current period
       const completedRuns = currentPeriod.best_runs || [];
@@ -89,21 +93,29 @@ export class ActivityTrackingService {
         if (latestSeason.best_runs && latestSeason.best_runs.length > 0) {
           // Check if any runs were completed this week
           const thisWeek = this.getThisWeekTimestamp();
-          const hasRecentRun = latestSeason.best_runs.some((run: any) => 
+          const recentRuns = latestSeason.best_runs.filter((run: any) => 
             run.completed_timestamp && run.completed_timestamp >= thisWeek
           );
           
-          if (hasRecentRun) {
-            console.log(`✅ Found Mythic+ run completed this week`);
-            return true;
+          if (recentRuns.length > 0) {
+            // Find the highest key level completed this week
+            const highestKeyLevel = Math.max(...recentRuns.map((run: any) => run.keystone_level || 0));
+            console.log(`✅ Found Mythic+ ${highestKeyLevel} run completed this week`);
+            return { completed: true, keyLevel: highestKeyLevel };
           }
         }
       }
       
-      return completedRuns.length > 0;
+      if (completedRuns.length > 0) {
+        // Find the highest key level in current period
+        const highestKeyLevel = Math.max(...completedRuns.map((run: any) => run.keystone_level || 0));
+        return { completed: true, keyLevel: highestKeyLevel };
+      }
+      
+      return { completed: false };
     } catch (error) {
       console.error('Error checking Mythic+ completion:', error);
-      return false;
+      return { completed: false };
     }
   }
 
@@ -309,3 +321,4 @@ export class ActivityTrackingService {
     return lastReset < currentWeekStart;
   }
 }
+

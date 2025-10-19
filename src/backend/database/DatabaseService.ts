@@ -19,10 +19,70 @@ export class DatabaseService {
   }
 
   /**
+   * Migrate the weekly_activities table to remove the UNIQUE constraint
+   */
+  private async migrateWeeklyActivitiesTable(): Promise<void> {
+    try {
+      // Check if the old table exists with the constraint
+      const tableInfo = await this.dbAll(`
+        SELECT sql FROM sqlite_master WHERE type='table' AND name='weekly_activities'
+      `);
+      
+      if (tableInfo.length > 0 && tableInfo[0].sql.includes('UNIQUE(character_id, activity_type, week_start)')) {
+        console.log('Migrating weekly_activities table to remove UNIQUE constraint...');
+        
+        // Create backup of existing data
+        await this.dbRun(`
+          CREATE TABLE IF NOT EXISTS weekly_activities_backup AS SELECT * FROM weekly_activities
+        `);
+        
+        // Drop the old table
+        await this.dbRun(`DROP TABLE weekly_activities`);
+        
+        // Recreate with new schema (without UNIQUE constraint)
+        await this.dbRun(`
+          CREATE TABLE weekly_activities (
+            id TEXT PRIMARY KEY,
+            character_id INTEGER NOT NULL,
+            activity_type TEXT NOT NULL,
+            activity_name TEXT NOT NULL,
+            description TEXT,
+            completed INTEGER NOT NULL DEFAULT 0,
+            completed_at INTEGER,
+            progress INTEGER DEFAULT 0,
+            max_progress INTEGER DEFAULT 0,
+            reset_day TEXT NOT NULL,
+            week_start INTEGER NOT NULL,
+            created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+            updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+            FOREIGN KEY (character_id) REFERENCES characters (id)
+          )
+        `);
+        
+        // Restore data from backup
+        await this.dbRun(`
+          INSERT INTO weekly_activities SELECT * FROM weekly_activities_backup
+        `);
+        
+        // Drop backup table
+        await this.dbRun(`DROP TABLE weekly_activities_backup`);
+        
+        console.log('✅ Migration complete: weekly_activities table updated');
+      }
+    } catch (error) {
+      console.error('Failed to migrate weekly_activities table:', error);
+      // Don't throw - let the app continue with existing schema
+    }
+  }
+
+  /**
    * Initialize database tables
    */
   private async initializeDatabase(): Promise<void> {
     try {
+      // Run migration first
+      await this.migrateWeeklyActivitiesTable();
+      
       // Users table
       await this.dbRun(`
         CREATE TABLE IF NOT EXISTS users (
@@ -73,8 +133,7 @@ export class DatabaseService {
           week_start INTEGER NOT NULL,
           created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
           updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
-          FOREIGN KEY (character_id) REFERENCES characters (id),
-          UNIQUE(character_id, activity_type, week_start)
+          FOREIGN KEY (character_id) REFERENCES characters (id)
         )
       `);
 

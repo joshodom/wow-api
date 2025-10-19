@@ -26,23 +26,23 @@ export const WEEKLY_ACTIVITIES = {
   },
   RAID_NORMAL: {
     id: 'raid_normal_weekly',
-    name: 'Raid Normal Weekly',
+    name: 'Normal Raid',
     type: 'RAID' as const,
-    description: 'Complete normal raid encounters',
+    description: 'Complete normal difficulty raid encounters',
     resetDay: 'TUESDAY' as const
   },
   RAID_HEROIC: {
     id: 'raid_heroic_weekly',
-    name: 'Raid Heroic Weekly',
+    name: 'Heroic Raid',
     type: 'RAID' as const,
-    description: 'Complete heroic raid encounters',
+    description: 'Complete heroic difficulty raid encounters',
     resetDay: 'TUESDAY' as const
   },
   RAID_MYTHIC: {
     id: 'raid_mythic_weekly',
-    name: 'Raid Mythic Weekly',
+    name: 'Mythic Raid',
     type: 'RAID' as const,
-    description: 'Complete mythic raid encounters',
+    description: 'Complete mythic difficulty raid encounters',
     resetDay: 'TUESDAY' as const
   },
   WEEKLY_QUEST: {

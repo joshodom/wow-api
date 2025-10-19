@@ -153,6 +153,27 @@ class WoWWeeklyTrackerServer {
         console.log('Saving user profile:', userProfile.id, 'with', userProfile.characters.length, 'characters');
         await this.databaseService.saveUserProfile(userProfile);
 
+        // Save character progress with weekly activities
+        console.log('💾 Saving weekly activities for all characters...');
+        for (const character of characters) {
+          if ((character as any).weeklyActivities) {
+            const characterProgress = {
+              characterId: character.id,
+              characterName: character.name,
+              realm: character.realm.slug,
+              race: character.playable_race.name.en_US,
+              className: character.playable_class.name.en_US,
+              level: character.level,
+              faction: character.faction.type,
+              activities: (character as any).weeklyActivities,
+              lastUpdated: new Date()
+            };
+            
+            await this.databaseService.saveCharacterProgress(characterProgress);
+            console.log(`✅ Saved ${characterProgress.activities.length} activities for ${character.name}`);
+          }
+        }
+
         // Generate JWT token
         const jwtToken = this.jwtService.generateToken(userProfile);
 
@@ -174,7 +195,30 @@ class WoWWeeklyTrackerServer {
           return res.status(404).json({ error: 'User not found' });
         }
 
-        return res.json({ characters: userProfile.characters });
+        // Fetch progress/activities for each character
+        const charactersWithProgress = await Promise.all(
+          userProfile.characters.map(async (character) => {
+            const progress = await this.databaseService.getCharacterProgress(character.id);
+            
+            // If we have progress data, merge it with character info
+            if (progress) {
+              return {
+                ...character,
+                activities: progress.activities,
+                lastUpdated: progress.lastUpdated
+              };
+            }
+            
+            // Otherwise return character without activities
+            return {
+              ...character,
+              activities: [],
+              lastUpdated: new Date()
+            };
+          })
+        );
+
+        return res.json({ characters: charactersWithProgress });
       } catch (error) {
         console.error('Error fetching characters:', error);
         return res.status(500).json({ error: 'Failed to fetch characters' });

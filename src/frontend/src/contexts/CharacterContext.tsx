@@ -53,17 +53,19 @@ export const CharacterProvider: React.FC<CharacterProviderProps> = ({ children }
 
             // Convert Blizzard characters to CharacterProgress format
             const characterProgress: CharacterProgress[] = characters.map((char: any) => {
-                // Generate default weekly activities for this character
-                const defaultActivities: WeeklyActivity[] = WEEKLY_ACTIVITIES ? Object.values(WEEKLY_ACTIVITIES).map(activity => ({
-                    id: `${char.id}_${activity.id}`,
-                    name: activity.name || 'Unknown Activity',
-                    type: activity.type || 'QUEST',
-                    description: activity.description || 'No description available',
-                    completed: false,
-                    progress: 0,
-                    maxProgress: 1,
-                    resetDay: activity.resetDay || 'TUESDAY'
-                })) : [];
+                // Use activities from backend if available, otherwise generate defaults
+                const activities: WeeklyActivity[] = char.activities && char.activities.length > 0 
+                    ? char.activities 
+                    : (WEEKLY_ACTIVITIES ? Object.values(WEEKLY_ACTIVITIES).map(activity => ({
+                        id: `${char.id}_${activity.id}`,
+                        name: activity.name || 'Unknown Activity',
+                        type: activity.type || 'QUEST',
+                        description: activity.description || 'No description available',
+                        completed: false,
+                        progress: 0,
+                        maxProgress: 1,
+                        resetDay: activity.resetDay || 'TUESDAY'
+                    })) : []);
 
                 return {
                     characterId: char.id,
@@ -73,8 +75,8 @@ export const CharacterProvider: React.FC<CharacterProviderProps> = ({ children }
                     className: char.playable_class?.name?.en_US || 'Unknown',
                     level: char.level || 0,
                     faction: char.faction?.type || 'UNKNOWN',
-                    activities: defaultActivities,
-                    lastUpdated: new Date()
+                    activities: activities,
+                    lastUpdated: char.lastUpdated ? new Date(char.lastUpdated) : new Date()
                 };
             })
 
